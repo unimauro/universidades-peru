@@ -5,7 +5,7 @@ Ranking de investigación de las universidades peruanas (públicas y privadas) c
 **🔗 En vivo:** https://unimauro.github.io/universidades-peru/
 
 ## Qué muestra
-- **91 universidades** (públicas y privadas) con bibliometría real: publicaciones, citaciones, h-index, citas por publicación.
+- **96 universidades** (públicas y privadas) con bibliometría real: publicaciones, citaciones, h-index, citas por publicación.
 - **Índice de Investigación** (referencial, 0–100): h-index 40%, publicaciones 25%, citaciones 20%, citas/publicación 15%.
 - Ranking completo **buscable, filtrable y ordenable**.
 - Comparación **pública vs privada** y gráficos de volumen vs impacto.

@@ -4,14 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Observatorio de Universidades del Perú — Ranking de Investigación</title>
-<meta name="description" content="Ranking e investigación de las universidades del Perú (públicas y privadas) con datos reales de OpenAlex: publicaciones, citaciones, h-index, citas por publicación e Índice de Investigación. 91 universidades comparadas.">
+<meta name="description" content="Ranking e investigación de las universidades del Perú (públicas y privadas) con datos reales de OpenAlex: publicaciones, citaciones, h-index, citas por publicación e Índice de Investigación. 96 universidades comparadas.">
 <meta name="author" content="Carlos Cárdenas Fernández">
 <meta name="keywords" content="universidades Perú, ranking universidades peruanas, investigación, bibliometría, OpenAlex, h-index, publicaciones científicas, SUNEDU, públicas, privadas, San Marcos, PUCP, Cayetano Heredia, UNI">
 <meta name="robots" content="index, follow, max-image-preview:large">
 <link rel="canonical" href="https://unimauro.github.io/universidades-peru/">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Observatorio de Universidades del Perú — Ranking de Investigación">
-<meta property="og:description" content="91 universidades peruanas (públicas y privadas) comparadas con datos reales de OpenAlex: publicaciones, citaciones, h-index e Índice de Investigación.">
+<meta property="og:description" content="96 universidades peruanas (públicas y privadas) comparadas con datos reales de OpenAlex: publicaciones, citaciones, h-index e Índice de Investigación.">
 <meta property="og:url" content="https://unimauro.github.io/universidades-peru/">
 <meta property="og:image" content="https://unimauro.github.io/universidades-peru/og-image.jpg">
 <meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
@@ -20,7 +20,7 @@
 <meta property="og:locale" content="es_PE">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Observatorio de Universidades del Perú">
-<meta name="twitter:description" content="Ranking de investigación de 91 universidades peruanas con datos reales de OpenAlex.">
+<meta name="twitter:description" content="Ranking de investigación de 96 universidades peruanas con datos reales de OpenAlex.">
 <meta name="twitter:image" content="https://unimauro.github.io/universidades-peru/og-image.jpg">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎓</text></svg>">
 <meta name="theme-color" content="#d91023">
@@ -33,7 +33,7 @@
 <script type="application/ld+json">
 {"@context":"https://schema.org","@graph":[
 {"@type":"WebSite","url":"https://unimauro.github.io/universidades-peru/","name":"Observatorio de Universidades del Perú","description":"Ranking de investigación de las universidades del Perú con datos reales de OpenAlex.","inLanguage":"es-PE","author":{"@type":"Person","name":"Carlos Cárdenas Fernández","url":"https://unimauro.github.io/"}},
-{"@type":"Dataset","name":"Indicadores de investigación de universidades del Perú","description":"Publicaciones, citaciones, h-index, citas por publicación e Índice de Investigación de 91 universidades peruanas públicas y privadas.","license":"https://creativecommons.org/publicdomain/zero/1.0/","creator":{"@type":"Person","name":"Carlos Cárdenas Fernández"},"isBasedOn":"https://openalex.org/","temporalCoverage":"2012/2026","distribution":{"@type":"DataDownload","encodingFormat":"application/json","contentUrl":"https://unimauro.github.io/universidades-peru/data/universidades.json"},"spatialCoverage":{"@type":"Country","name":"Perú"}}
+{"@type":"Dataset","name":"Indicadores de investigación de universidades del Perú","description":"Publicaciones, citaciones, h-index, citas por publicación e Índice de Investigación de 96 universidades peruanas públicas y privadas.","license":"https://creativecommons.org/publicdomain/zero/1.0/","creator":{"@type":"Person","name":"Carlos Cárdenas Fernández"},"isBasedOn":"https://openalex.org/","temporalCoverage":"2012/2026","distribution":{"@type":"DataDownload","encodingFormat":"application/json","contentUrl":"https://unimauro.github.io/universidades-peru/data/universidades.json"},"spatialCoverage":{"@type":"Country","name":"Perú"}}
 ]}
 </script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
@@ -129,7 +129,7 @@
     <span class="badge">🇵🇪 Datos reales · OpenAlex</span>
     <h1>Observatorio de <span class="r">Universidades del Perú</span></h1>
     <p class="subtitle">Ranking de investigación · públicas y privadas</p>
-    <p class="lead">¿Qué tanto investiga cada universidad peruana? Comparamos <b id="nTot">91</b> universidades con bibliometría real (publicaciones, citaciones, h-index) y un <b>Índice de Investigación</b> transparente. La infraestructura no aparece: lo que se mide es ciencia.</p>
+    <p class="lead">¿Qué tanto investiga cada universidad peruana? Comparamos <b id="nTot">96</b> universidades (públicas y privadas) con bibliometría real (publicaciones, citaciones, h-index) y un <b>Índice de Investigación</b> transparente. La infraestructura no aparece: lo que se mide es ciencia.</p>
     <div class="topbtns">
       <a class="tb" href="#tabla">📊 Ranking completo</a>
       <a class="tb" href="#graficos">📈 Gráficos</a>
@@ -184,7 +184,7 @@
   <!-- TABLA -->
   <section id="tabla">
     <div class="sec-h"><span class="ico">📊</span><h2>Ranking completo</h2></div>
-    <p class="sec-desc">Las <b id="nTot2">91</b> universidades. Busca, filtra por tipo y ordena haciendo clic en cualquier columna.</p>
+    <p class="sec-desc">Las <b id="nTot2">96</b> universidades del país. Busca, filtra por tipo y ordena haciendo clic en cualquier columna.</p>
     <div class="controls">
       <input id="q" placeholder="🔎 Buscar universidad (nombre o sigla)…" oninput="render()">
       <div class="seg" id="segTipo">
@@ -221,7 +221,7 @@
         <tr><td><b>Citaciones</b> (alcance, escala log)</td><td class="num">20%</td></tr>
         <tr><td><b>Citas por publicación</b> (calidad)</td><td class="num">15%</td></tr>
       </tbody></table>
-      <p class="sec-desc" style="margin-top:10px;margin-bottom:0">⚠️ Limitaciones honestas: la bibliometría favorece áreas con mucha citación (medicina, ciencias) frente a ingeniería o humanidades; un solo paper muy citado puede inflar el h-index de una universidad pequeña. No mide docencia, empleabilidad ni infraestructura. <b>Fuente:</b> OpenAlex (CC0), datos ~2026. Universidades con menos de 30 publicaciones se excluyen por falta de masa mínima.</p>
+      <p class="sec-desc" style="margin-top:10px;margin-bottom:0">⚠️ Limitaciones honestas: la bibliometría favorece áreas con mucha citación (medicina, ciencias) frente a ingeniería o humanidades; un solo paper muy citado puede inflar el h-index de una universidad pequeña. No mide docencia, empleabilidad ni infraestructura. <b>Fuente:</b> OpenAlex (CC0), datos ~2026. <b>Cobertura:</b> todas las universidades del Perú presentes en OpenAlex (se excluyen institutos, escuelas militares y centros que no son universidades). Las que aún no registran publicaciones indexadas aparecen con métricas en 0 (no es un ranking de calidad docente).</p>
     </div>
   </section>
 
