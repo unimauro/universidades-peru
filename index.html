@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Observatorio de Universidades del Perú — Ranking de Investigación</title>
+<meta name="description" content="Ranking e investigación de las universidades del Perú (públicas y privadas) con datos reales de OpenAlex: publicaciones, citaciones, h-index, citas por publicación e Índice de Investigación. 91 universidades comparadas.">
+<meta name="author" content="Carlos Cárdenas Fernández">
+<meta name="keywords" content="universidades Perú, ranking universidades peruanas, investigación, bibliometría, OpenAlex, h-index, publicaciones científicas, SUNEDU, públicas, privadas, San Marcos, PUCP, Cayetano Heredia, UNI">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<link rel="canonical" href="https://unimauro.github.io/universidades-peru/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Observatorio de Universidades del Perú — Ranking de Investigación">
+<meta property="og:description" content="91 universidades peruanas (públicas y privadas) comparadas con datos reales de OpenAlex: publicaciones, citaciones, h-index e Índice de Investigación.">
+<meta property="og:url" content="https://unimauro.github.io/universidades-peru/">
+<meta property="og:image" content="https://unimauro.github.io/universidades-peru/og-image.jpg">
+<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Observatorio de Universidades del Perú">
+<meta property="og:site_name" content="Observatorio de Universidades del Perú">
+<meta property="og:locale" content="es_PE">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Observatorio de Universidades del Perú">
+<meta name="twitter:description" content="Ranking de investigación de 91 universidades peruanas con datos reales de OpenAlex.">
+<meta name="twitter:image" content="https://unimauro.github.io/universidades-peru/og-image.jpg">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎓</text></svg>">
+<meta name="theme-color" content="#d91023">
+<link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+<link rel="dns-prefetch" href="https://api.openalex.org">
+<link rel="dns-prefetch" href="https://ai.tunky.net">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@graph":[
+{"@type":"WebSite","url":"https://unimauro.github.io/universidades-peru/","name":"Observatorio de Universidades del Perú","description":"Ranking de investigación de las universidades del Perú con datos reales de OpenAlex.","inLanguage":"es-PE","author":{"@type":"Person","name":"Carlos Cárdenas Fernández","url":"https://unimauro.github.io/"}},
+{"@type":"Dataset","name":"Indicadores de investigación de universidades del Perú","description":"Publicaciones, citaciones, h-index, citas por publicación e Índice de Investigación de 91 universidades peruanas públicas y privadas.","license":"https://creativecommons.org/publicdomain/zero/1.0/","creator":{"@type":"Person","name":"Carlos Cárdenas Fernández"},"isBasedOn":"https://openalex.org/","temporalCoverage":"2012/2026","distribution":{"@type":"DataDownload","encodingFormat":"application/json","contentUrl":"https://unimauro.github.io/universidades-peru/data/universidades.json"},"spatialCoverage":{"@type":"Country","name":"Perú"}}
+]}
+</script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="config.js"></script>
+<style>
+  :root{
+    --bg:#0c0f17; --bg2:#121624; --card:#171c2e; --card2:#1d2440; --line:#2a3252;
+    --txt:#eef1f8; --muted:#94a0c0; --muted2:#5f6c93;
+    --pe:#d91023; --pe2:#f03a4b; --gold:#f4b740;
+    --verde:#22c55e; --azul:#3b82f6; --morado:#a855f7;
+  }
+  body[data-theme="light"]{--bg:#f3f5fa;--bg2:#fff;--card:#fff;--card2:#eef1f8;--line:#dfe4ee;--txt:#18202f;--muted:#5b6680;--muted2:#8a95ab;--gold:#b07400;}
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--txt);line-height:1.6;-webkit-font-smoothing:antialiased;}
+  a{color:var(--pe2);}
+  header.top{background:linear-gradient(160deg,#1a0508,#0c0f17 60%);border-bottom:1px solid var(--pe);padding:26px 20px 22px;}
+  body[data-theme="light"] header.top{background:linear-gradient(160deg,#fff,#fbe9eb);}
+  .hwrap{max-width:1180px;margin:0 auto;}
+  .badge{display:inline-block;background:var(--pe);color:#fff;font-weight:800;padding:5px 14px;border-radius:999px;letter-spacing:.5px;font-size:.74rem;}
+  header.top h1{font-size:clamp(1.8rem,4.8vw,2.9rem);font-weight:900;margin:12px 0 2px;letter-spacing:-1px;line-height:1.04;}
+  header.top h1 .r{background:linear-gradient(90deg,var(--pe),var(--pe2));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;}
+  header.top .subtitle{font-size:clamp(1rem,2.6vw,1.3rem);font-weight:700;letter-spacing:.4px;margin:0 0 6px;color:var(--gold);text-transform:uppercase;}
+  header.top p.lead{color:var(--muted);max-width:720px;font-size:.95rem;}
+  .topbtns{margin-top:14px;display:flex;gap:8px;flex-wrap:wrap;}
+  .tb{background:var(--card2);border:1px solid var(--line);color:var(--txt);padding:7px 13px;border-radius:9px;font-size:.82rem;font-weight:600;cursor:pointer;text-decoration:none;display:inline-block;}
+  .tb:hover{border-color:var(--pe);}
+  nav.chips{position:sticky;top:0;z-index:40;background:rgba(12,15,23,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);padding:9px 20px;overflow-x:auto;white-space:nowrap;}
+  body[data-theme="light"] nav.chips{background:rgba(255,255,255,.92);}
+  nav.chips a{color:var(--muted);text-decoration:none;font-size:.82rem;font-weight:600;margin-right:16px;}
+  nav.chips a:hover{color:var(--pe2);}
+  .wrap{max-width:1180px;margin:0 auto;padding:22px 18px 70px;}
+  section{margin:30px 0;scroll-margin-top:54px;}
+  .sec-h{display:flex;align-items:center;gap:10px;margin-bottom:4px;}
+  .sec-h .ico{font-size:1.5rem;}
+  .sec-h h2{font-size:clamp(1.3rem,3.2vw,1.7rem);font-weight:800;}
+  .sec-desc{color:var(--muted);font-size:.9rem;margin-bottom:14px;}
+  .grid{display:grid;gap:14px;}
+  .g4{grid-template-columns:repeat(4,1fr);} .g3{grid-template-columns:repeat(3,1fr);} .g2{grid-template-columns:repeat(2,1fr);}
+  @media(max-width:880px){.g4{grid-template-columns:repeat(2,1fr);}.g3{grid-template-columns:1fr;}.g2{grid-template-columns:1fr;}}
+  @media(max-width:520px){.g4{grid-template-columns:1fr 1fr;}}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:15px;}
+  .stat .k{color:var(--muted);font-weight:600;text-transform:uppercase;font-size:.72rem;letter-spacing:.4px;}
+  .stat .v{font-size:1.9rem;font-weight:900;margin:2px 0;}
+  .stat .d{font-size:.8rem;color:var(--muted2);}
+  .chartbox{position:relative;height:330px;}
+  @media(max-width:600px){.chartbox{height:300px;}}
+  .controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:12px;}
+  .controls input,.controls select{background:var(--card);border:1px solid var(--line);color:var(--txt);padding:9px 12px;border-radius:9px;font-size:.88rem;font-family:inherit;}
+  .controls input{flex:1;min-width:180px;}
+  .seg{display:inline-flex;border:1px solid var(--line);border-radius:9px;overflow:hidden;}
+  .seg button{background:var(--card);color:var(--muted);border:0;padding:9px 14px;font-size:.82rem;font-weight:700;cursor:pointer;}
+  .seg button.on{background:var(--pe);color:#fff;}
+  .tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:13px;}
+  table{width:100%;border-collapse:collapse;font-size:.86rem;min-width:720px;}
+  th,td{padding:9px 12px;text-align:left;border-bottom:1px solid var(--line);}
+  thead th{background:var(--card2);color:var(--muted);font-size:.74rem;text-transform:uppercase;letter-spacing:.3px;cursor:pointer;user-select:none;position:sticky;top:0;}
+  thead th.num,td.num{text-align:right;}
+  thead th:hover{color:var(--pe2);}
+  tbody tr:hover{background:var(--card2);}
+  tr.uni{background:rgba(217,16,35,.12);}
+  .pill{display:inline-block;padding:2px 9px;border-radius:999px;font-size:.72rem;font-weight:700;}
+  .pill.pub{background:rgba(59,130,246,.18);color:#7eb0ff;}
+  .pill.priv{background:rgba(244,183,64,.18);color:var(--gold);}
+  .scorebadge{font-weight:900;color:var(--gold);}
+  .rk{color:var(--muted2);font-weight:700;}
+  .box{background:linear-gradient(135deg,rgba(217,16,35,.12),rgba(244,183,64,.08));border:1px solid rgba(217,16,35,.3);border-radius:13px;padding:15px;font-size:.9rem;}
+  footer{border-top:1px solid var(--line);margin-top:50px;padding:24px 18px 60px;text-align:center;color:var(--muted);font-size:.85rem;}
+  .sup{display:inline-flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:10px 0;}
+  .sup a{background:var(--card2);border:1px solid var(--line);color:var(--txt);padding:7px 14px;border-radius:999px;text-decoration:none;font-weight:600;font-size:.82rem;}
+  /* bot */
+  #botFab{position:fixed;right:18px;bottom:18px;width:54px;height:54px;border-radius:50%;background:var(--pe);color:#fff;border:0;font-size:1.5rem;cursor:pointer;box-shadow:0 6px 20px rgba(0,0,0,.4);z-index:60;}
+  .botPanel{position:fixed;right:18px;bottom:82px;width:min(380px,92vw);height:min(560px,72vh);background:var(--card);border:1px solid var(--line);border-radius:15px;display:none;flex-direction:column;overflow:hidden;z-index:60;box-shadow:0 12px 40px rgba(0,0,0,.5);}
+  .botPanel.open{display:flex;}
+  .botHead{background:var(--card2);padding:11px 14px;font-weight:700;font-size:.9rem;display:flex;justify-content:space-between;align-items:center;}
+  .botX{background:0;border:0;color:var(--muted);font-size:1.1rem;cursor:pointer;}
+  .botMsgs{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:9px;}
+  .bm{padding:9px 12px;border-radius:11px;font-size:.86rem;max-width:85%;}
+  .bm.u{background:var(--pe);color:#fff;align-self:flex-end;}
+  .bm.a{background:var(--card2);align-self:flex-start;}
+  .botChips{padding:0 12px 6px;display:flex;gap:6px;flex-wrap:wrap;}
+  .botChips button{background:var(--card2);border:1px solid var(--line);color:var(--muted);border-radius:999px;padding:5px 10px;font-size:.74rem;cursor:pointer;}
+  .botInput{display:flex;padding:10px;gap:8px;border-top:1px solid var(--line);}
+  .botInput input{flex:1;background:var(--bg);border:1px solid var(--line);color:var(--txt);border-radius:9px;padding:9px 11px;font-family:inherit;font-size:.86rem;}
+  .botInput button{background:var(--pe);border:0;color:#fff;border-radius:9px;padding:0 14px;cursor:pointer;font-size:1.05rem;}
+  .toggle{position:absolute;top:14px;right:18px;background:var(--card2);border:1px solid var(--line);color:var(--txt);border-radius:999px;padding:6px 12px;font-size:.78rem;cursor:pointer;font-weight:600;}
+</style>
+</head>
+<body>
+<header class="top">
+  <button class="toggle" onclick="toggleTheme()" id="themeBtn">🌙 Noche</button>
+  <div class="hwrap">
+    <span class="badge">🇵🇪 Datos reales · OpenAlex</span>
+    <h1>Observatorio de <span class="r">Universidades del Perú</span></h1>
+    <p class="subtitle">Ranking de investigación · públicas y privadas</p>
+    <p class="lead">¿Qué tanto investiga cada universidad peruana? Comparamos <b id="nTot">91</b> universidades con bibliometría real (publicaciones, citaciones, h-index) y un <b>Índice de Investigación</b> transparente. La infraestructura no aparece: lo que se mide es ciencia.</p>
+    <div class="topbtns">
+      <a class="tb" href="#tabla">📊 Ranking completo</a>
+      <a class="tb" href="#graficos">📈 Gráficos</a>
+      <a class="tb" href="#pubpriv">⚖️ Pública vs Privada</a>
+      <a class="tb" href="https://unimauro.github.io/gemelo-digital-uni/" target="_blank" rel="noopener">🎓 Gemelo Digital UNI ↗</a>
+    </div>
+  </div>
+</header>
+
+<nav class="chips">
+  <a href="#resumen">📌 Resumen</a>
+  <a href="#graficos">📈 Gráficos</a>
+  <a href="#pubpriv">⚖️ Pública vs Privada</a>
+  <a href="#tabla">📊 Ranking completo</a>
+  <a href="#metodo">🧮 Metodología</a>
+</nav>
+
+<div class="wrap">
+
+  <!-- RESUMEN -->
+  <section id="resumen">
+    <div class="sec-h"><span class="ico">📌</span><h2>El panorama en números</h2></div>
+    <p class="sec-desc">Fotografía bibliométrica del sistema universitario peruano (OpenAlex, ~2026).</p>
+    <div class="grid g4" id="kpis"></div>
+  </section>
+
+  <!-- GRAFICOS -->
+  <section id="graficos">
+    <div class="sec-h"><span class="ico">📈</span><h2>Quién investiga más</h2></div>
+    <p class="sec-desc">Top universidades por Índice de Investigación, h-index y publicaciones. Tipo: <span class="pill pub">Pública</span> <span class="pill priv">Privada</span>.</p>
+    <div class="grid g2">
+      <div class="card"><h3 style="font-size:.95rem;margin-bottom:8px">🏆 Top 15 · Índice de Investigación</h3><div class="chartbox"><canvas id="cScore"></canvas></div></div>
+      <div class="card"><h3 style="font-size:.95rem;margin-bottom:8px">🔬 Top 15 · h-index (impacto)</h3><div class="chartbox"><canvas id="cH"></canvas></div></div>
+    </div>
+    <div class="grid g2" style="margin-top:14px">
+      <div class="card"><h3 style="font-size:.95rem;margin-bottom:8px">📚 Top 15 · Publicaciones</h3><div class="chartbox"><canvas id="cPub"></canvas></div></div>
+      <div class="card"><h3 style="font-size:.95rem;margin-bottom:8px">🎯 Volumen vs impacto (todas)</h3><div class="chartbox"><canvas id="cScatter"></canvas></div><div style="font-size:.74rem;color:var(--muted2);margin-top:4px">Eje X: publicaciones (log) · Eje Y: h-index. Arriba-derecha = más y mejor investigación.</div></div>
+    </div>
+  </section>
+
+  <!-- PUBLICA VS PRIVADA -->
+  <section id="pubpriv">
+    <div class="sec-h"><span class="ico">⚖️</span><h2>Pública vs Privada</h2></div>
+    <p class="sec-desc">¿Quién produce más ciencia en el Perú?</p>
+    <div class="grid g2">
+      <div class="card"><h3 style="font-size:.95rem;margin-bottom:8px">Participación en publicaciones</h3><div class="chartbox" style="height:280px"><canvas id="cShare"></canvas></div></div>
+      <div class="grid g2" id="ppCards" style="align-content:start"></div>
+    </div>
+    <div class="box" style="margin-top:14px" id="ppNote">…</div>
+  </section>
+
+  <!-- TABLA -->
+  <section id="tabla">
+    <div class="sec-h"><span class="ico">📊</span><h2>Ranking completo</h2></div>
+    <p class="sec-desc">Las <b id="nTot2">91</b> universidades. Busca, filtra por tipo y ordena haciendo clic en cualquier columna.</p>
+    <div class="controls">
+      <input id="q" placeholder="🔎 Buscar universidad (nombre o sigla)…" oninput="render()">
+      <div class="seg" id="segTipo">
+        <button class="on" data-t="">Todas</button>
+        <button data-t="Pública">Públicas</button>
+        <button data-t="Privada">Privadas</button>
+      </div>
+      <span class="sec-desc" id="count" style="margin:0"></span>
+    </div>
+    <div class="tablewrap"><table id="tbl">
+      <thead><tr>
+        <th data-s="rank" class="num">#</th>
+        <th data-s="name">Universidad</th>
+        <th data-s="tipo">Tipo</th>
+        <th data-s="city">Ciudad</th>
+        <th data-s="score" class="num">Índice</th>
+        <th data-s="works" class="num">Public.</th>
+        <th data-s="cited" class="num">Citas</th>
+        <th data-s="h" class="num">h-index</th>
+        <th data-s="cpp" class="num">Citas/pub</th>
+      </tr></thead>
+      <tbody id="rows"></tbody>
+    </table></div>
+  </section>
+
+  <!-- METODOLOGIA -->
+  <section id="metodo">
+    <div class="sec-h"><span class="ico">🧮</span><h2>Metodología y fuentes</h2></div>
+    <div class="card">
+      <p style="margin-bottom:8px">El <b>Índice de Investigación</b> es un score <b>referencial (0–100)</b>, no un ranking oficial. Combina (normalizado entre todas las universidades):</p>
+      <table style="min-width:auto"><tbody>
+        <tr><td><b>h-index</b> (impacto + trayectoria)</td><td class="num">40%</td></tr>
+        <tr><td><b>Publicaciones</b> (volumen, escala log)</td><td class="num">25%</td></tr>
+        <tr><td><b>Citaciones</b> (alcance, escala log)</td><td class="num">20%</td></tr>
+        <tr><td><b>Citas por publicación</b> (calidad)</td><td class="num">15%</td></tr>
+      </tbody></table>
+      <p class="sec-desc" style="margin-top:10px;margin-bottom:0">⚠️ Limitaciones honestas: la bibliometría favorece áreas con mucha citación (medicina, ciencias) frente a ingeniería o humanidades; un solo paper muy citado puede inflar el h-index de una universidad pequeña. No mide docencia, empleabilidad ni infraestructura. <b>Fuente:</b> OpenAlex (CC0), datos ~2026. Universidades con menos de 30 publicaciones se excluyen por falta de masa mínima.</p>
+    </div>
+  </section>
+
+</div>
+
+<footer>
+  <p><b>Observatorio de Universidades del Perú</b> — bibliometría real para ver quién investiga de verdad. 🇵🇪</p>
+  <div class="sup">
+    <a href="https://www.paypal.com/paypalme/unimauro" target="_blank" rel="noopener">☕ Buy me a coffee / PayPal</a>
+    <a href="https://yape.com.pe/" target="_blank" rel="noopener">📲 Yápeame</a>
+    <a href="https://unimauro.github.io/gemelo-digital-uni/" target="_blank" rel="noopener">🎓 Gemelo Digital UNI</a>
+  </div>
+  <p style="font-size:.78rem;color:var(--muted2);margin-top:8px">Datos: OpenAlex (CC0). Índice referencial, no oficial. Creado por Carlos Cárdenas Fernández.</p>
+</footer>
+
+<button id="botFab" onclick="botToggle()" aria-label="Preguntar a los datos">🤖</button>
+<div id="botPanel" class="botPanel">
+  <div class="botHead">🤖 Pregúntale a los datos <button class="botX" onclick="botToggle()">✕</button></div>
+  <div class="botMsgs" id="botMsgs"></div>
+  <div class="botChips" id="botChips"></div>
+  <div class="botInput"><input id="botIn" placeholder="Ej: ¿quién investiga más?" onkeydown="if(event.key==='Enter')botSend()"><button onclick="botSend()">➤</button></div>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const fmt=n=>(n==null)?'—':Number(n).toLocaleString('es-PE');
+const COL={Pública:'#3b82f6',Privada:'#f4b740'};
+let DB=null, STATE={tipo:'',sort:'rank',dir:1};
+const C={};
+function mk(id,cfg){ if(C[id])C[id].destroy(); C[id]=new Chart($(id),cfg); }
+const gridc=()=>getComputedStyle(document.body).getPropertyValue('--line')||'#2a3252';
+const axc='#94a0c0';
+
+fetch('data/universidades.json').then(r=>r.json()).then(d=>{DB=d;init();}).catch(e=>{$('rows').innerHTML='<tr><td colspan="9">No se pudo cargar la data.</td></tr>';});
+
+function init(){
+  const U=DB.unis, M=DB.meta;
+  $('nTot').textContent=M.total; $('nTot2').textContent=M.total;
+  const totPub=U.reduce((a,x)=>a+x.works,0), totCit=U.reduce((a,x)=>a+x.cited,0);
+  $('kpis').innerHTML=[
+    ['Universidades',fmt(M.total),M.n_publicas+' públicas · '+M.n_privadas+' privadas'],
+    ['Publicaciones (total)',fmt(totPub),'suma de todas · OpenAlex'],
+    ['Citaciones (total)',fmt(totCit),'alcance acumulado'],
+    ['Líder en investigación',U[0].acron||U[0].name.split(' ').slice(-1)[0],'Índice '+U[0].score+' · h-index '+U[0].h]
+  ].map(x=>`<div class="card stat"><div class="k">${x[0]}</div><div class="v">${x[1]}</div><div class="d">${x[2]}</div></div>`).join('');
+
+  // charts top 15
+  const t15=U.slice(0,15);
+  const barOpts=(log)=>({indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{type:log?'logarithmic':'linear',grid:{color:gridc()},ticks:{color:axc}},y:{grid:{display:false},ticks:{color:axc,font:{size:10}}}}});
+  const lbl=x=>x.acron||x.name.slice(0,18);
+  mk('cScore',{type:'bar',data:{labels:t15.map(lbl),datasets:[{data:t15.map(x=>x.score),backgroundColor:t15.map(x=>COL[x.tipo])}]},options:barOpts(false)});
+  const tH=[...U].sort((a,b)=>b.h-a.h).slice(0,15);
+  mk('cH',{type:'bar',data:{labels:tH.map(lbl),datasets:[{data:tH.map(x=>x.h),backgroundColor:tH.map(x=>COL[x.tipo])}]},options:barOpts(false)});
+  const tP=[...U].sort((a,b)=>b.works-a.works).slice(0,15);
+  mk('cPub',{type:'bar',data:{labels:tP.map(lbl),datasets:[{data:tP.map(x=>x.works),backgroundColor:tP.map(x=>COL[x.tipo])}]},options:barOpts(false)});
+  // scatter
+  mk('cScatter',{type:'scatter',data:{datasets:[
+    {label:'Pública',data:U.filter(x=>x.tipo==='Pública').map(x=>({x:x.works,y:x.h,n:x.acron||x.name})),backgroundColor:'#3b82f6'},
+    {label:'Privada',data:U.filter(x=>x.tipo==='Privada').map(x=>({x:x.works,y:x.h,n:x.acron||x.name})),backgroundColor:'#f4b740'}
+  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:axc,boxWidth:12}},tooltip:{callbacks:{label:c=>c.raw.n+': '+fmt(c.raw.x)+' pub · h'+c.raw.y}}},scales:{x:{type:'logarithmic',title:{display:true,text:'Publicaciones (log)',color:axc},grid:{color:gridc()},ticks:{color:axc}},y:{title:{display:true,text:'h-index',color:axc},grid:{color:gridc()},ticks:{color:axc}}}}});
+
+  // pública vs privada
+  const agg=t=>{const s=U.filter(x=>x.tipo===t);return{n:s.length,works:s.reduce((a,x)=>a+x.works,0),cited:s.reduce((a,x)=>a+x.cited,0),h:Math.round(s.reduce((a,x)=>a+x.h,0)/s.length)};};
+  const ap=agg('Pública'), av=agg('Privada');
+  mk('cShare',{type:'doughnut',data:{labels:['Públicas','Privadas'],datasets:[{data:[ap.works,av.works],backgroundColor:['#3b82f6','#f4b740'],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:axc}}}}});
+  $('ppCards').innerHTML=[
+    ['Públicas',ap,'#3b82f6'],['Privadas',av,'#f4b740']
+  ].map(([t,a,c])=>`<div class="card" style="border-left:4px solid ${c}"><div class="k" style="color:var(--muted);font-weight:700;font-size:.74rem;text-transform:uppercase">${t} (${a.n})</div><div style="font-size:1.5rem;font-weight:900">${fmt(a.works)}</div><div class="d" style="font-size:.8rem;color:var(--muted2)">publicaciones · h-index prom. ${a.h}</div></div>`).join('');
+  const pctP=Math.round(100*ap.works/(ap.works+av.works));
+  $('ppNote').innerHTML=`<b>Lectura:</b> las <b>${ap.n} públicas</b> aportan el <b>${pctP}%</b> de las publicaciones y las <b>${av.n} privadas</b> el <b>${100-pctP}%</b>. El h-index promedio (impacto) es <b>${ap.h}</b> en públicas y <b>${av.h}</b> en privadas. La concentración es enorme: pocas universidades producen casi toda la ciencia del país.`;
+
+  // segmento tipo
+  $('segTipo').querySelectorAll('button').forEach(b=>b.onclick=()=>{
+    $('segTipo').querySelectorAll('button').forEach(x=>x.classList.remove('on'));
+    b.classList.add('on'); STATE.tipo=b.dataset.t; render();
+  });
+  // sort headers
+  document.querySelectorAll('#tbl thead th').forEach(th=>th.onclick=()=>{
+    const s=th.dataset.s; if(!s)return;
+    if(STATE.sort===s)STATE.dir*=-1; else{STATE.sort=s;STATE.dir=(s==='name'||s==='tipo'||s==='city')?1:-1;}
+    render();
+  });
+  render(); botBoot();
+}
+
+function render(){
+  if(!DB)return;
+  const q=($('q').value||'').toLowerCase().trim();
+  let rows=DB.unis.filter(x=>(!STATE.tipo||x.tipo===STATE.tipo)&&(!q||(x.name.toLowerCase().includes(q)||(x.acron||'').toLowerCase().includes(q)||(x.city||'').toLowerCase().includes(q))));
+  const s=STATE.sort,d=STATE.dir;
+  rows.sort((a,b)=>{let va=a[s],vb=b[s];if(typeof va==='string'){va=va||'';vb=vb||'';return va.localeCompare(vb)*d;}return ((va||0)-(vb||0))*d;});
+  $('count').textContent=rows.length+' universidades';
+  $('rows').innerHTML=rows.map(x=>{
+    const isUni=x.acron==='UNI';
+    return `<tr class="${isUni?'uni':''}">
+      <td class="num rk">${x.rank}</td>
+      <td>${isUni?'<b style="color:var(--pe2)">':''}${x.name}${x.acron?` <span style="color:var(--muted2)">(${x.acron})</span>`:''}${isUni?'</b>':''}</td>
+      <td><span class="pill ${x.tipo==='Pública'?'pub':'priv'}">${x.tipo}</span></td>
+      <td>${x.city||'—'}</td>
+      <td class="num scorebadge">${x.score}</td>
+      <td class="num">${fmt(x.works)}</td>
+      <td class="num">${fmt(x.cited)}</td>
+      <td class="num">${fmt(x.h)}</td>
+      <td class="num">${x.cpp}</td>
+    </tr>`;}).join('')||'<tr><td colspan="9" style="text-align:center;color:var(--muted)">Sin resultados.</td></tr>';
+}
+
+/* tema */
+function toggleTheme(){const b=document.body,l=b.getAttribute('data-theme')==='light';if(l){b.removeAttribute('data-theme');$('themeBtn').textContent='🌙 Noche';}else{b.setAttribute('data-theme','light');$('themeBtn').textContent='☀️ Día';}try{localStorage.setItem('theme',l?'dark':'light');}catch(e){}if(DB)init();}
+try{if(localStorage.getItem('theme')==='light'){document.body.setAttribute('data-theme','light');}}catch(e){}
+if(document.body.getAttribute('data-theme')==='light')$('themeBtn').textContent='☀️ Día';
+
+/* BOT */
+function botToggle(){$('botPanel').classList.toggle('open');}
+function botSay(t,who){const d=document.createElement('div');d.className='bm '+(who||'a');d.innerHTML=t;$('botMsgs').appendChild(d);$('botMsgs').scrollTop=9e9;}
+function botChips(){$('botChips').innerHTML=['¿Quién investiga más?','¿Públicas o privadas?','¿Dónde está la UNI?','Top 5 del país'].map(c=>`<button onclick="botPick('${c}')">${c}</button>`).join('');}
+function botPick(c){$('botIn').value=c;botSend();}
+function botBoot(){if($('botMsgs').childElementCount===0){botSay('¡Hola! 🤖 Soy el asistente del Observatorio. Pregúntame por el <b>ranking</b>, <b>públicas vs privadas</b>, una universidad puntual o el <b>top del país</b>.');botChips();}}
+function botCtx(){const U=DB.unis,M=DB.meta;const top=U.slice(0,8).map(x=>`${x.rank}. ${x.acron||x.name} (${x.tipo}, Índice ${x.score}, h${x.h}, ${x.works} pub)`).join('; ');
+  return `Universidades del Perú (OpenAlex, ~2026): ${M.total} en total, ${M.n_publicas} públicas y ${M.n_privadas} privadas. Top: ${top}. El Índice de Investigación es referencial (h-index 40%, publicaciones 25%, citaciones 20%, citas/pub 15%).`;}
+async function botSend(){const i=$('botIn'),q=i.value.trim();if(!q)return;botSay(q,'u');i.value='';
+  const cfg=window.UNI_IA||{};
+  if(cfg.proxy||cfg.apiKey){try{botSay('<i>pensando…</i>');const r=await botLLM(q);$('botMsgs').lastChild.innerHTML=r;return;}catch(e){$('botMsgs').lastChild.innerHTML=botAns(q);return;}}
+  botSay(botAns(q));}
+async function botLLM(q){const cfg=window.UNI_IA;const url=cfg.proxy||cfg.endpoint;
+  const headers={'Content-Type':'application/json'};if(cfg.proxy&&cfg.clientToken)headers['X-Client-Token']=cfg.clientToken;if(!cfg.proxy&&cfg.apiKey)headers['Authorization']='Bearer '+cfg.apiKey;
+  const msgs=[{role:'system',content:'Eres el asistente del Observatorio de Universidades del Perú. Responde en español, breve y directo, SOLO con los datos provistos; si falta el dato, dilo. El Índice es referencial, no oficial.'},{role:'user',content:botCtx()+'\n\nPregunta: '+q}];
+  const payload=cfg.proxy?{project:(cfg.project||'observatorio'),messages:msgs}:{model:cfg.model,messages:msgs};
+  const res=await fetch(url,{method:'POST',headers,body:JSON.stringify(payload)});const j=await res.json();
+  return (j.choices&&j.choices[0]&&j.choices[0].message&&j.choices[0].message.content)||j.content||j.reply||j.text||'Sin respuesta.';}
+function botAns(qr){const U=DB.unis,M=DB.meta,q=qr.toLowerCase();
+  const has=(...w)=>w.some(x=>q.includes(x));
+  if(has('uni','ingenieria','ingeniería')){const u=U.find(x=>x.acron==='UNI');return u?`La <b>UNI</b> está en el puesto <b>#${u.rank}</b> del país por Índice de Investigación (${u.score}), con <b>${fmt(u.works)}</b> publicaciones y h-index <b>${u.h}</b>. Mira el <a href="https://unimauro.github.io/gemelo-digital-uni/" target="_blank">Gemelo Digital de la UNI</a>.`:'—';}
+  if(has('publica','privada','público','quién aporta')){const p=U.filter(x=>x.tipo==='Pública'),v=U.filter(x=>x.tipo==='Privada');const wp=p.reduce((a,x)=>a+x.works,0),wv=v.reduce((a,x)=>a+x.works,0);return `Hay <b>${M.n_publicas} públicas</b> y <b>${M.n_privadas} privadas</b>. Las públicas aportan <b>${Math.round(100*wp/(wp+wv))}%</b> de las publicaciones; las privadas el resto. La líder es <b>${U[0].acron}</b> (${U[0].tipo}).`;}
+  if(has('top','mejor','ranking','quien investiga','quién investiga','lider','líder','primer')){return 'Top 5 por Índice de Investigación: '+U.slice(0,5).map(x=>`<b>${x.rank}. ${x.acron||x.name}</b> (${x.score})`).join(', ')+'.';}
+  const m=U.find(x=>(x.acron&&q.includes(x.acron.toLowerCase()))||q.includes(x.name.toLowerCase().slice(0,12)));
+  if(m)return `<b>${m.name}</b> (${m.tipo}): puesto <b>#${m.rank}</b>, Índice ${m.score}, <b>${fmt(m.works)}</b> publicaciones, ${fmt(m.cited)} citas, h-index <b>${m.h}</b>.`;
+  return 'Puedo contarte del <b>ranking</b>, <b>públicas vs privadas</b>, el <b>top del país</b> o una universidad puntual (escribe su sigla). 🙂';}
+</script>
+</body>
+</html>
