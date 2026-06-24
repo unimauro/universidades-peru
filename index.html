@@ -124,6 +124,9 @@
   .pill{display:inline-block;padding:2px 9px;border-radius:999px;font-size:.72rem;font-weight:700;}
   .pill.pub{background:rgba(59,130,246,.18);color:#7eb0ff;}
   .pill.priv{background:rgba(244,183,64,.18);color:var(--gold);}
+  .pill.area{background:rgba(168,85,247,.16);color:#c79bff;}
+  body[data-theme="light"] .pill.area{color:#7c3aed;}
+  .controls select{cursor:pointer;}
   .scorebadge{font-weight:900;color:var(--gold);}
   .rk{color:var(--muted2);font-weight:700;}
   .box{background:linear-gradient(135deg,rgba(217,16,35,.12),rgba(244,183,64,.08));border:1px solid rgba(217,16,35,.3);border-radius:13px;padding:15px;font-size:.9rem;}
@@ -176,6 +179,7 @@
     <a data-sec="resumen" href="#resumen"><span class="em">📌</span> Resumen</a>
     <a data-sec="graficos" href="#graficos"><span class="em">📈</span> Gráficos</a>
     <a data-sec="pubpriv" href="#pubpriv"><span class="em">⚖️</span> Pública vs Privada</a>
+    <a data-sec="areas" href="#areas"><span class="em">🔬</span> Áreas / Temas</a>
     <a data-sec="presupuesto" href="#presupuesto"><span class="em">💰</span> Presupuesto</a>
     <a data-sec="tabla" href="#tabla"><span class="em">📊</span> Ranking completo</a>
     <a data-sec="metodo" href="#metodo"><span class="em">🧮</span> Metodología</a>
@@ -242,6 +246,17 @@
     <div class="box" style="margin-top:14px" id="ppNote">…</div>
   </section>
 
+  <!-- AREAS / TEMAS -->
+  <section id="areas">
+    <div class="sec-h"><span class="ico">🔬</span><h2>Áreas de investigación (temas)</h2></div>
+    <p class="sec-desc">¿Qué investiga el Perú? Perfil temático del país y el <b>área dominante</b> de cada universidad. Usa el filtro de la tabla para explorar por tema.</p>
+    <div class="grid g2">
+      <div class="card"><h3 style="font-size:.95rem;margin-bottom:8px">📚 Perfil temático nacional (temas por campo)</h3><div class="chartbox" style="height:380px"><canvas id="cAreas"></canvas></div></div>
+      <div class="grid g2" id="areaCards" style="align-content:start"></div>
+    </div>
+    <div class="box" style="margin-top:14px" id="areaNote">…</div>
+  </section>
+
   <!-- PRESUPUESTO Y EFICIENCIA -->
   <section id="presupuesto">
     <div class="sec-h"><span class="ico">💰</span><h2>Presupuesto y eficiencia (per cápita)</h2></div>
@@ -265,6 +280,7 @@
         <button data-t="Pública">Públicas</button>
         <button data-t="Privada">Privadas</button>
       </div>
+      <select id="fField"><option value="">🔬 Todas las áreas</option></select>
       <span class="sec-desc" id="count" style="margin:0"></span>
     </div>
     <div class="tablewrap"><table id="tbl">
@@ -273,6 +289,7 @@
         <th data-s="name">Universidad</th>
         <th data-s="tipo">Tipo</th>
         <th data-s="city">Ciudad</th>
+        <th data-s="field">Área dominante</th>
         <th data-s="score" class="num">Índice</th>
         <th data-s="works" class="num">Public.</th>
         <th data-s="cited" class="num">Citas</th>
@@ -334,19 +351,19 @@
 <script>
 const $=id=>document.getElementById(id);
 function sideToggle(force){const sd=$('side'),sc=$('scrim');const open=(force===undefined)?!sd.classList.contains('open'):force;sd.classList.toggle('open',open);sc.classList.toggle('open',open);}
-const SECS=['resumen','graficos','pubpriv','presupuesto','tabla','metodo','contacto'];
+const SECS=['resumen','graficos','pubpriv','areas','presupuesto','tabla','metodo','contacto'];
 function spy(){let cur=SECS[0];for(const id of SECS){const el=$(id);if(el&&el.getBoundingClientRect().top<=130)cur=id;}document.querySelectorAll('#snav a[data-sec]').forEach(a=>a.classList.toggle('active',a.dataset.sec===cur));}
 window.addEventListener('scroll',spy,{passive:true});window.addEventListener('load',spy);
 document.addEventListener('click',e=>{const a=e.target.closest('#snav a[data-sec]');if(a&&window.innerWidth<=900)sideToggle(false);});
 const fmt=n=>(n==null)?'—':Number(n).toLocaleString('es-PE');
 const COL={Pública:'#3b82f6',Privada:'#f4b740'};
-let DB=null, STATE={tipo:'',sort:'rank',dir:1};
+let DB=null, STATE={tipo:'',field:'',sort:'rank',dir:1};
 const C={};
 function mk(id,cfg){ if(C[id])C[id].destroy(); C[id]=new Chart($(id),cfg); }
 const gridc=()=>getComputedStyle(document.body).getPropertyValue('--line')||'#2a3252';
 const axc='#94a0c0';
 
-fetch('data/universidades.json').then(r=>r.json()).then(d=>{DB=d;init();}).catch(e=>{$('rows').innerHTML='<tr><td colspan="11">No se pudo cargar la data.</td></tr>';});
+fetch('data/universidades.json').then(r=>r.json()).then(d=>{DB=d;init();}).catch(e=>{$('rows').innerHTML='<tr><td colspan="12">No se pudo cargar la data.</td></tr>';});
 
 function init(){
   const U=DB.unis, M=DB.meta;
@@ -399,6 +416,17 @@ function init(){
     ['Mayor presupuesto',p0.acron||'—','S/ '+fmt(p0.pim)+' M'],
     ['UNI · eficiencia',(uni&&uni.eff?uni.eff+' pub/M':'—'),(uni&&uni.spp?'S/ '+fmt(uni.spp)+' por publicación':'')]
   ].map(x=>`<div class="card stat"><div class="k">${x[0]}</div><div class="v" style="font-size:1.5rem">${x[1]}</div><div class="d">${x[2]}</div></div>`).join('');
+  // áreas / temas
+  const campos=M.campos||[];
+  mk('cAreas',{type:'bar',data:{labels:campos.map(c=>c.f),datasets:[{data:campos.map(c=>c.n),backgroundColor:'#a855f7'}]},options:barOpts(false)});
+  $('fField').innerHTML='<option value="">🔬 Todas las áreas</option>'+(M.areas_filtro||[]).map(f=>`<option>${f}</option>`).join('');
+  $('fField').onchange=()=>{STATE.field=$('fField').value;render();};
+  const byField={}; U.forEach(x=>{if(x.field&&x.field!=='Sin datos'){(byField[x.field]=byField[x.field]||[]).push(x);}});
+  const topField=campos[0]?campos[0].f:'—';
+  // líder por algunas áreas clave
+  const claves=['Ingeniería','Medicina','Ciencias Agrarias y Biológicas','Computación'];
+  $('areaCards').innerHTML=claves.map(f=>{const g=(U.filter(x=>(x.fields||[]).some(z=>z.f===f))).sort((a,b)=>b.h-a.h)[0];return g?`<div class="card" style="border-left:4px solid #a855f7"><div class="k" style="color:var(--muted);font-weight:700;font-size:.72rem;text-transform:uppercase">${f}</div><div style="font-size:1.05rem;font-weight:900;margin:2px 0">${g.acron||g.name.slice(0,20)}</div><div class="d" style="font-size:.78rem;color:var(--muted2)">referente por h-index (${g.h})</div></div>`:'';}).join('');
+  $('areaNote').innerHTML=`<b>Lectura:</b> el área con más producción del país es <b>${topField}</b>. OpenAlex agrupa muchos estudios aplicados, educativos y de gestión bajo "Ciencias Sociales", por eso suele dominar; aun así, el perfil revela las fortalezas reales (agrarias, ambientales, computación, salud). Filtra la tabla por área para ver qué universidades lideran cada tema.`;
   $('presuNote').innerHTML=`<b>Per cápita (ciencia por sol):</b> más presupuesto no garantiza más investigación. Universidades chicas como <b>${e0.acron||e0.name}</b> rinden <b>${e0.eff} publicaciones por cada S/ millón</b>, superando a varias con presupuestos mucho mayores. ${uni&&uni.spp?`A la <b>UNI</b> cada publicación le cuesta ~<b>S/ ${fmt(uni.spp)}</b>. `:''}<b>Fuente:</b> MEF/SIAF (PIM 2025) + OpenAlex (publicaciones 2024).`;
 
   // segmento tipo
@@ -418,7 +446,7 @@ function init(){
 function render(){
   if(!DB)return;
   const q=($('q').value||'').toLowerCase().trim();
-  let rows=DB.unis.filter(x=>(!STATE.tipo||x.tipo===STATE.tipo)&&(!q||(x.name.toLowerCase().includes(q)||(x.acron||'').toLowerCase().includes(q)||(x.city||'').toLowerCase().includes(q))));
+  let rows=DB.unis.filter(x=>(!STATE.tipo||x.tipo===STATE.tipo)&&(!STATE.field||x.field===STATE.field)&&(!q||(x.name.toLowerCase().includes(q)||(x.acron||'').toLowerCase().includes(q)||(x.city||'').toLowerCase().includes(q))));
   const s=STATE.sort,d=STATE.dir;
   rows.sort((a,b)=>{let va=a[s],vb=b[s];if(typeof va==='string'){va=va||'';vb=vb||'';return va.localeCompare(vb)*d;}return ((va||0)-(vb||0))*d;});
   $('count').textContent=rows.length+' universidades';
@@ -429,6 +457,7 @@ function render(){
       <td>${isUni?'<b style="color:var(--pe2)">':''}${x.name}${x.acron?` <span style="color:var(--muted2)">(${x.acron})</span>`:''}${isUni?'</b>':''}</td>
       <td><span class="pill ${x.tipo==='Pública'?'pub':'priv'}">${x.tipo}</span></td>
       <td>${x.city||'—'}</td>
+      <td>${x.field&&x.field!=='Sin datos'?'<span class="pill area">'+x.field+'</span>':'<span style="color:var(--muted2)">—</span>'}</td>
       <td class="num scorebadge">${x.score}</td>
       <td class="num">${fmt(x.works)}</td>
       <td class="num">${fmt(x.cited)}</td>
@@ -436,7 +465,7 @@ function render(){
       <td class="num">${x.cpp}</td>
       <td class="num">${x.pim?fmt(x.pim):'<span style="color:var(--muted2)">—</span>'}</td>
       <td class="num">${x.eff?'<b style="color:#22c55e">'+x.eff+'</b>':'<span style="color:var(--muted2)">—</span>'}</td>
-    </tr>`;}).join('')||'<tr><td colspan="11" style="text-align:center;color:var(--muted)">Sin resultados.</td></tr>';
+    </tr>`;}).join('')||'<tr><td colspan="12" style="text-align:center;color:var(--muted)">Sin resultados.</td></tr>';
 }
 
 /* tema */
@@ -474,7 +503,7 @@ function botCtx(){const U=DB.unis,M=DB.meta;const top=U.slice(0,8).map(x=>`${x.r
   const conP=U.filter(x=>x.pim);
   const effL=conP.filter(x=>x.eff).sort((a,b)=>b.eff-a.eff).slice(0,3).map(x=>`${x.acron||x.name} ${x.eff} pub por S/millón`).join('; ');
   const preL=[...conP].sort((a,b)=>b.pim-a.pim).slice(0,3).map(x=>`${x.acron||x.name} S/${x.pim}M`).join('; ');
-  return `Universidades del Perú (OpenAlex + MEF, ~2026): ${M.total} en total, ${M.n_publicas} públicas y ${M.n_privadas} privadas. Top investigación: ${top}. Presupuesto público total S/ ${M.presupuesto_total_publicas} millones (PIM 2025) en ${M.n_con_presupuesto} públicas; mayores: ${preL}. Más eficientes (publicaciones 2024 por S/ millón): ${effL}. El Índice de Investigación es referencial (h-index 40%, publicaciones 25%, citaciones 20%, citas/pub 15%); las privadas no tienen presupuesto público. Para consultas/asesoría: carlos@cardenas.pe.`;}
+  return `Universidades del Perú (OpenAlex + MEF, ~2026): ${M.total} en total, ${M.n_publicas} públicas y ${M.n_privadas} privadas. Top investigación: ${top}. Presupuesto público total S/ ${M.presupuesto_total_publicas} millones (PIM 2025) en ${M.n_con_presupuesto} públicas; mayores: ${preL}. Más eficientes (publicaciones 2024 por S/ millón): ${effL}. Áreas más investigadas del país: ${(M.campos||[]).slice(0,6).map(c=>c.f).join(', ')}. El Índice de Investigación es referencial (h-index 40%, publicaciones 25%, citaciones 20%, citas/pub 15%); las privadas no tienen presupuesto público. Para consultas/asesoría: carlos@cardenas.pe.`;}
 async function botSend(){const i=$('botIn'),q=i.value.trim();if(!q)return;botSay(q,'u');i.value='';
   const cfg=window.UNI_IA||{};
   if(cfg.proxy||cfg.apiKey){try{botSay('<i>pensando…</i>');const r=await botLLM(q);$('botMsgs').lastChild.innerHTML=r;return;}catch(e){$('botMsgs').lastChild.innerHTML=botAns(q);return;}}
@@ -489,6 +518,7 @@ function botAns(qr){const U=DB.unis,M=DB.meta,q=qr.toLowerCase();
   const has=(...w)=>w.some(x=>q.includes(x));
   if(has('uni','ingenieria','ingeniería')){const u=U.find(x=>x.acron==='UNI');return u?`La <b>UNI</b> está en el puesto <b>#${u.rank}</b> del país por Índice de Investigación (${u.score}), con <b>${fmt(u.works)}</b> publicaciones y h-index <b>${u.h}</b>. Mira el <a href="https://unimauro.github.io/gemelo-digital-uni/" target="_blank">Gemelo Digital de la UNI</a>.`:'—';}
   if(has('publica','privada','público','quién aporta')){const p=U.filter(x=>x.tipo==='Pública'),v=U.filter(x=>x.tipo==='Privada');const wp=p.reduce((a,x)=>a+x.works,0),wv=v.reduce((a,x)=>a+x.works,0);return `Hay <b>${M.n_publicas} públicas</b> y <b>${M.n_privadas} privadas</b>. Las públicas aportan <b>${Math.round(100*wp/(wp+wv))}%</b> de las publicaciones; las privadas el resto. La líder es <b>${U[0].acron}</b> (${U[0].tipo}).`;}
+  if(has('area','área','tema','campo','investiga en','especiali','disciplina')){const cc=(M.campos||[]).slice(0,5).map(c=>c.f);const m2=U.find(x=>(x.acron&&q.includes(x.acron.toLowerCase()))||q.includes((x.name||'').toLowerCase().slice(0,12)));if(m2&&m2.fields&&m2.fields.length)return `<b>${m2.name}</b> investiga sobre todo en <b>${m2.field}</b> (${m2.fields.map(z=>z.f+' '+z.pct+'%').join(', ')}).`;return 'Las áreas más investigadas del país son: <b>'+cc.join('</b>, <b>')+'</b>. Filtra la tabla por área para ver qué universidades lideran cada tema.';}
   if(has('eficien','por sol','por millón','per capita','per cápita','rinde','rendimiento')){const e=U.filter(x=>x.eff).sort((a,b)=>b.eff-a.eff)[0];return e?`La más <b>eficiente</b> es <b>${e.acron||e.name}</b>: <b>${e.eff} publicaciones por cada S/ millón</b> (PIM 2025, MEF). Más presupuesto no siempre es más ciencia.`:'—';}
   if(has('presupuesto','plata','dinero','pim','soles','financia','mef')){const p=U.filter(x=>x.pim).sort((a,b)=>b.pim-a.pim)[0];return `El presupuesto público total es <b>S/ ${fmt(M.presupuesto_total_publicas)} millones</b> (PIM 2025, MEF) en ${M.n_con_presupuesto} universidades. La de mayor presupuesto es <b>${p.acron||p.name}</b> (S/ ${fmt(p.pim)}M). Las privadas no reciben presupuesto público.`;}
   if(has('top','mejor','ranking','quien investiga','quién investiga','lider','líder','primer')){return 'Top 5 por Índice de Investigación: '+U.slice(0,5).map(x=>`<b>${x.rank}. ${x.acron||x.name}</b> (${x.score})`).join(', ')+'.';}
