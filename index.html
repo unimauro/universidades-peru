@@ -255,6 +255,15 @@
       <div class="grid g2" id="areaCards" style="align-content:start"></div>
     </div>
     <div class="box" style="margin-top:14px" id="areaNote">…</div>
+    <div class="grid g2" style="margin-top:14px">
+      <div class="card"><h3 style="font-size:.95rem;margin-bottom:8px">🧩 Tipo de producción (Perú)</h3><div class="chartbox" style="height:300px"><canvas id="cTipos"></canvas></div><div style="font-size:.74rem;color:var(--muted2);margin-top:4px">Casi todo son artículos científicos. La transferencia tecnológica (patentes, diseños) no está aquí.</div></div>
+      <div class="card" style="border-left:4px solid var(--pe);display:flex;flex-direction:column;justify-content:center">
+        <h3 style="font-size:1rem;margin-bottom:6px">📌 ¿Y el impacto / las patentes?</h3>
+        <p style="font-size:.9rem;color:var(--muted);margin-bottom:8px">El <b>impacto académico</b> ya se mide aquí: <b>h-index</b>, <b>citas por publicación</b> y <b>citas recientes (2 años)</b> — están en el ranking y los gráficos.</p>
+        <p style="font-size:.9rem;color:var(--muted);margin-bottom:8px">Pero <b>OpenAlex registra 0 patentes</b> para el Perú: es una base de <b>literatura científica</b>, no de patentes. Eso ya dice algo: la producción es casi 100% papers, muy poca <b>transferencia tecnológica</b>.</p>
+        <p style="font-size:.86rem;color:var(--muted2);margin:0">Para <b>patentes y diseños industriales</b> la fuente oficial es <b>INDECOPI</b> (Dirección de Invenciones y Nuevas Tecnologías). Se puede integrar en una próxima versión. ✉️ <a href="mailto:carlos@cardenas.pe">Escríbeme</a> si lo necesitas.</p>
+      </div>
+    </div>
   </section>
 
   <!-- PRESUPUESTO Y EFICIENCIA -->
@@ -419,6 +428,8 @@ function init(){
   // áreas / temas
   const campos=M.campos||[];
   mk('cAreas',{type:'bar',data:{labels:campos.map(c=>c.f),datasets:[{data:campos.map(c=>c.n),backgroundColor:'#a855f7'}]},options:barOpts(false)});
+  const tipos=M.tipos||[];
+  mk('cTipos',{type:'doughnut',data:{labels:tipos.map(t=>t.t),datasets:[{data:tipos.map(t=>t.n),backgroundColor:['#3b82f6','#22c55e','#f4b740','#a855f7','#ef4444','#06b6d4','#f97316','#94a0c0'],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{color:axc,boxWidth:11,font:{size:10}}}}}});
   $('fField').innerHTML='<option value="">🔬 Todas las áreas</option>'+(M.areas_filtro||[]).map(f=>`<option>${f}</option>`).join('');
   $('fField').onchange=()=>{STATE.field=$('fField').value;render();};
   const byField={}; U.forEach(x=>{if(x.field&&x.field!=='Sin datos'){(byField[x.field]=byField[x.field]||[]).push(x);}});
@@ -518,6 +529,8 @@ function botAns(qr){const U=DB.unis,M=DB.meta,q=qr.toLowerCase();
   const has=(...w)=>w.some(x=>q.includes(x));
   if(has('uni','ingenieria','ingeniería')){const u=U.find(x=>x.acron==='UNI');return u?`La <b>UNI</b> está en el puesto <b>#${u.rank}</b> del país por Índice de Investigación (${u.score}), con <b>${fmt(u.works)}</b> publicaciones y h-index <b>${u.h}</b>. Mira el <a href="https://unimauro.github.io/gemelo-digital-uni/" target="_blank">Gemelo Digital de la UNI</a>.`:'—';}
   if(has('publica','privada','público','quién aporta')){const p=U.filter(x=>x.tipo==='Pública'),v=U.filter(x=>x.tipo==='Privada');const wp=p.reduce((a,x)=>a+x.works,0),wv=v.reduce((a,x)=>a+x.works,0);return `Hay <b>${M.n_publicas} públicas</b> y <b>${M.n_privadas} privadas</b>. Las públicas aportan <b>${Math.round(100*wp/(wp+wv))}%</b> de las publicaciones; las privadas el resto. La líder es <b>${U[0].acron}</b> (${U[0].tipo}).`;}
+  if(has('patente','diseño industrial','transferencia','innovacion','innovación','indecopi')){return 'OpenAlex registra <b>0 patentes</b> para el Perú: es una base de <b>literatura científica</b>, no de patentes. El impacto aquí se mide por <b>citaciones, h-index y citas por publicación</b>. Para <b>patentes y diseños industriales</b> la fuente oficial es <b>INDECOPI</b> (Dirección de Invenciones). Se puede integrar a futuro.';}
+  if(has('impacto','citas recientes','calidad')){const t=[...U].filter(x=>x.mcit).sort((a,b)=>b.mcit-a.mcit)[0];return `El <b>impacto</b> se mide por <b>h-index</b> (trayectoria), <b>citas por publicación</b> y <b>citas recientes a 2 años</b>. Por impacto reciente destaca <b>${t.acron||t.name}</b> (${t.mcit} citas/pub a 2 años).`;}
   if(has('area','área','tema','campo','investiga en','especiali','disciplina')){const cc=(M.campos||[]).slice(0,5).map(c=>c.f);const m2=U.find(x=>(x.acron&&q.includes(x.acron.toLowerCase()))||q.includes((x.name||'').toLowerCase().slice(0,12)));if(m2&&m2.fields&&m2.fields.length)return `<b>${m2.name}</b> investiga sobre todo en <b>${m2.field}</b> (${m2.fields.map(z=>z.f+' '+z.pct+'%').join(', ')}).`;return 'Las áreas más investigadas del país son: <b>'+cc.join('</b>, <b>')+'</b>. Filtra la tabla por área para ver qué universidades lideran cada tema.';}
   if(has('eficien','por sol','por millón','per capita','per cápita','rinde','rendimiento')){const e=U.filter(x=>x.eff).sort((a,b)=>b.eff-a.eff)[0];return e?`La más <b>eficiente</b> es <b>${e.acron||e.name}</b>: <b>${e.eff} publicaciones por cada S/ millón</b> (PIM 2025, MEF). Más presupuesto no siempre es más ciencia.`:'—';}
   if(has('presupuesto','plata','dinero','pim','soles','financia','mef')){const p=U.filter(x=>x.pim).sort((a,b)=>b.pim-a.pim)[0];return `El presupuesto público total es <b>S/ ${fmt(M.presupuesto_total_publicas)} millones</b> (PIM 2025, MEF) en ${M.n_con_presupuesto} universidades. La de mayor presupuesto es <b>${p.acron||p.name}</b> (S/ ${fmt(p.pim)}M). Las privadas no reciben presupuesto público.`;}
