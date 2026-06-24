@@ -118,6 +118,11 @@
   .bm{padding:9px 12px;border-radius:11px;font-size:.86rem;max-width:85%;}
   .bm.u{background:var(--pe);color:#fff;align-self:flex-end;}
   .bm.a{background:var(--card2);align-self:flex-start;}
+  .bm strong,.bm b{font-weight:800;}
+  .bm em{font-style:italic;}
+  .bm code{background:rgba(0,0,0,.28);padding:1px 5px;border-radius:4px;font-size:.85em;font-family:ui-monospace,Menlo,monospace;}
+  body[data-theme="light"] .bm code{background:rgba(0,0,0,.08);}
+  .bm ul,.bm ol{margin:4px 0 4px 18px;} .bm li{margin:2px 0;} .bm a{text-decoration:underline;}
   .botChips{padding:0 12px 6px;display:flex;gap:6px;flex-wrap:wrap;}
   .botChips button{background:var(--card2);border:1px solid var(--line);color:var(--muted);border-radius:999px;padding:5px 10px;font-size:.74rem;cursor:pointer;}
   .botInput{display:flex;padding:10px;gap:8px;border-top:1px solid var(--line);}
@@ -397,6 +402,26 @@ try{if(localStorage.getItem('theme')==='light'){document.body.setAttribute('data
 if(document.body.getAttribute('data-theme')==='light')$('themeBtn').textContent='☀️ Día';
 
 /* BOT */
+function md(src){
+  if(!src) return '';
+  let t=String(src).replace(/\r/g,'');
+  t=t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  t=t.replace(/`([^`]+)`/g,'<code>$1</code>');
+  t=t.replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>').replace(/__([^_]+)__/g,'<strong>$1</strong>');
+  t=t.replace(/(^|[\s(])\*([^*\n]+)\*/g,'$1<em>$2</em>');
+  t=t.replace(/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g,'<a href="$2" target="_blank" rel="noopener">$1</a>');
+  const lines=t.split('\n'); let html='',list=null;
+  const close=()=>{ if(list){html+='</'+list+'>';list=null;} };
+  for(let raw of lines){
+    const line=raw.trim(); let m;
+    if(!line){ close(); continue; }
+    if(m=line.match(/^#{1,6}\s+(.*)$/)){ close(); html+='<div style="font-weight:800;margin:3px 0">'+m[1]+'</div>'; continue; }
+    if(m=line.match(/^[-*\u2022]\s+(.*)$/)){ if(list!=='ul'){close();html+='<ul>';list='ul';} html+='<li>'+m[1]+'</li>'; continue; }
+    if(m=line.match(/^\d+[.)]\s+(.*)$/)){ if(list!=='ol'){close();html+='<ol>';list='ol';} html+='<li>'+m[1]+'</li>'; continue; }
+    close(); html+='<div>'+line+'</div>';
+  }
+  close(); return html;
+}
 function botToggle(){$('botPanel').classList.toggle('open');}
 function botSay(t,who){const d=document.createElement('div');d.className='bm '+(who||'a');d.innerHTML=t;$('botMsgs').appendChild(d);$('botMsgs').scrollTop=9e9;}
 function botChips(){$('botChips').innerHTML=['¿Quién investiga más?','¿Públicas o privadas?','¿Cuál es la más eficiente?','¿Dónde está la UNI?','Mayor presupuesto'].map(c=>`<button onclick="botPick('${c}')">${c}</button>`).join('');}
@@ -416,7 +441,7 @@ async function botLLM(q){const cfg=window.UNI_IA;const url=cfg.proxy||cfg.endpoi
   const msgs=[{role:'system',content:'Eres el asistente del Observatorio de Universidades del Perú. Responde en español, breve y directo, SOLO con los datos provistos; si falta el dato, dilo. El Índice es referencial, no oficial.'},{role:'user',content:botCtx()+'\n\nPregunta: '+q}];
   const payload=cfg.proxy?{project:(cfg.project||'observatorio'),messages:msgs}:{model:cfg.model,messages:msgs};
   const res=await fetch(url,{method:'POST',headers,body:JSON.stringify(payload)});const j=await res.json();
-  return (j.choices&&j.choices[0]&&j.choices[0].message&&j.choices[0].message.content)||j.content||j.reply||j.text||'Sin respuesta.';}
+  return md((j.choices&&j.choices[0]&&j.choices[0].message&&j.choices[0].message.content)||j.content||j.reply||j.text||'Sin respuesta.');}
 function botAns(qr){const U=DB.unis,M=DB.meta,q=qr.toLowerCase();
   const has=(...w)=>w.some(x=>q.includes(x));
   if(has('uni','ingenieria','ingeniería')){const u=U.find(x=>x.acron==='UNI');return u?`La <b>UNI</b> está en el puesto <b>#${u.rank}</b> del país por Índice de Investigación (${u.score}), con <b>${fmt(u.works)}</b> publicaciones y h-index <b>${u.h}</b>. Mira el <a href="https://unimauro.github.io/gemelo-digital-uni/" target="_blank">Gemelo Digital de la UNI</a>.`:'—';}
