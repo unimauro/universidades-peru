@@ -333,12 +333,12 @@
 
   <!-- PRESUPUESTO Y EFICIENCIA -->
   <section id="presupuesto">
-    <div class="sec-h"><span class="ico">💰</span><h2>Presupuesto y eficiencia (per cápita)</h2></div>
-    <p class="sec-desc">¿Cuánta ciencia produce cada universidad pública por cada sol invertido? Presupuesto <b>PIM 2025</b> (MEF/SIAF). Las privadas no reciben presupuesto público.</p>
+    <div class="sec-h"><span class="ico">💰</span><h2>Presupuesto e inversión en I+D</h2></div>
+    <p class="sec-desc">¿Qué <b>% del presupuesto</b> dedica cada universidad pública a <b>investigación</b>? Usamos la <b>partida de I+D</b> (programa "Desarrollo de la CTI", MEF/SIAF 2025) — <b>no el presupuesto total</b> (que incluye sueldos, servicios, luz, agua). Las privadas no reciben presupuesto público.</p>
     <div class="grid g4" id="presuKpis"></div>
     <div class="grid g2" style="margin-top:14px">
-      <div class="card"><h3 style="font-size:.95rem;margin-bottom:8px">⚡ Top 15 · Eficiencia (publicaciones 2024 por S/ millón)</h3><div class="chartbox"><canvas id="cEff"></canvas></div></div>
-      <div class="card"><h3 style="font-size:.95rem;margin-bottom:8px">💵 Top 15 · Presupuesto (S/ millones)</h3><div class="chartbox"><canvas id="cPresu"></canvas></div></div>
+      <div class="card"><h3 style="font-size:.95rem;margin-bottom:8px">🔬 Top 15 · % del presupuesto dedicado a I+D</h3><div class="chartbox"><canvas id="cEff"></canvas></div></div>
+      <div class="card"><h3 style="font-size:.95rem;margin-bottom:8px">💵 Top 15 · Partida de I+D (S/ millones)</h3><div class="chartbox"><canvas id="cPresu"></canvas></div></div>
     </div>
     <div class="box" style="margin-top:14px" id="presuNote">…</div>
   </section>
@@ -371,7 +371,7 @@
         <th data-s="h" class="num">h-index</th>
         <th data-s="cpp" class="num">Citas/pub</th>
         <th data-s="pim" class="num">Presup. S/M</th>
-        <th data-s="eff" class="num">Pub/M S/</th>
+        <th data-s="idi_pct" class="num">% a I+D</th>
       </tr></thead>
       <tbody id="rows"></tbody>
     </table></div>
@@ -519,17 +519,18 @@ function init(){
   $('ppNote').innerHTML=`<b>Lectura:</b> las <b>${ap.n} públicas</b> aportan el <b>${pctP}%</b> de las publicaciones y las <b>${av.n} privadas</b> el <b>${100-pctP}%</b>. El h-index promedio (impacto) es <b>${ap.h}</b> en públicas y <b>${av.h}</b> en privadas. La concentración es enorme: pocas universidades producen casi toda la ciencia del país.`;
 
   // presupuesto y eficiencia
-  const conP=U.filter(x=>x.pim);
-  const effS=conP.filter(x=>x.eff).sort((a,b)=>b.eff-a.eff).slice(0,15);
-  mk('cEff',{type:'bar',data:{labels:effS.map(lbl),datasets:[{data:effS.map(x=>x.eff),backgroundColor:'#22c55e'}]},options:barOpts(false)});
-  const preS=[...conP].sort((a,b)=>b.pim-a.pim).slice(0,15);
-  mk('cPresu',{type:'bar',data:{labels:preS.map(lbl),datasets:[{data:preS.map(x=>x.pim),backgroundColor:'#2563eb'}]},options:barOpts(false)});
-  const uni=U.find(x=>x.acron==='UNI'), e0=effS[0]||{}, p0=preS[0]||{};
+  const conP=U.filter(x=>x.pim), conIdi=conP.filter(x=>x.idi>0);
+  const pctS=[...conIdi].sort((a,b)=>b.idi_pct-a.idi_pct).slice(0,15);
+  mk('cEff',{type:'bar',data:{labels:pctS.map(lbl),datasets:[{data:pctS.map(x=>x.idi_pct),backgroundColor:'#16a34a'}]},options:barOpts(false)});
+  const idiS=[...conIdi].sort((a,b)=>b.idi-a.idi).slice(0,15);
+  mk('cPresu',{type:'bar',data:{labels:idiS.map(lbl),datasets:[{data:idiS.map(x=>x.idi),backgroundColor:'#2563eb'}]},options:barOpts(false)});
+  const uni=U.find(x=>x.acron==='UNI'), t0=pctS[0]||{};
+  const pctNac=(M.presupuesto_total_publicas?(100*(M.idi_total||0)/M.presupuesto_total_publicas):0).toFixed(1);
   $('presuKpis').innerHTML=[
-    ['Presupuesto público total','S/ '+fmt(M.presupuesto_total_publicas)+' M','PIM 2025 · '+M.n_con_presupuesto+' universidades'],
-    ['Más eficiente',e0.acron||(e0.name||'').slice(0,14),(e0.eff||'—')+' pub por S/ millón'],
-    ['Mayor presupuesto',p0.acron||'—','S/ '+fmt(p0.pim)+' M'],
-    ['UNI · eficiencia',(uni&&uni.eff?uni.eff+' pub/M':'—'),(uni&&uni.spp?'S/ '+fmt(uni.spp)+' por publicación':'')]
+    ['Inversión total en I+D','S/ '+(M.idi_total||0)+' M','solo '+pctNac+'% del presupuesto público total · MEF 2025'],
+    ['Mayor % a I+D',t0.acron||(t0.name||'').slice(0,14),(t0.idi_pct||'—')+'% · S/ '+(t0.idi||0)+'M'],
+    ['UNI · % a I+D',(uni&&uni.idi_pct?uni.idi_pct+'%':'—'),(uni&&uni.idi?'S/ '+uni.idi+'M de S/ '+uni.pim+'M':'')],
+    ['Costo por publicación (I+D)',(uni&&uni.cost_idi?'S/ '+fmt(uni.cost_idi):'—'),'UNI · partida I+D ÷ pubs 2024 (no total)']
   ].map(x=>`<div class="card stat"><div class="k">${x[0]}</div><div class="v" style="font-size:1.5rem">${x[1]}</div><div class="d">${x[2]}</div></div>`).join('');
   // áreas / temas
   const campos=M.campos||[];
@@ -551,7 +552,7 @@ function init(){
     const nsU=U.filter(x=>x.ns>0).sort((a,b)=>b.ns-a.ns);
     $('arwuNS').innerHTML='<b>📊 Adelanto — indicador N&amp;S aplicado al Perú:</b> en toda la historia, el país registra <b>'+(M.ns_total||179)+' papers en Nature &amp; Science</b>, concentrados en solo <b>'+(M.ns_unis||nsU.length)+' universidades</b>: '+nsU.slice(0,6).map(x=>(x.acron||x.name.slice(0,12))+' <b>'+x.ns+'</b>').join(' · ')+'. <span style="color:var(--muted2)">Varias provienen de mega-colaboraciones (física de partículas) donde la universidad es 1 de miles de coautores — ARWU aplica conteo fraccional para eso.</span>';
   }
-  $('presuNote').innerHTML=`<b>Per cápita (ciencia por sol):</b> más presupuesto no garantiza más investigación. Universidades chicas como <b>${e0.acron||e0.name}</b> rinden <b>${e0.eff} publicaciones por cada S/ millón</b>, superando a varias con presupuestos mucho mayores. ${uni&&uni.spp?`A la <b>UNI</b> cada publicación le cuesta ~<b>S/ ${fmt(uni.spp)}</b>. `:''}<b>Fuente:</b> MEF/SIAF (PIM 2025) + OpenAlex (publicaciones 2024).`;
+  $('presuNote').innerHTML=`<b>⚠️ Corrección metodológica:</b> el costo por publicación NO se calcula dividiendo el <b>presupuesto total</b> entre publicaciones (ese total paga sueldos, servicios, luz, agua…), sino la <b>partida de investigación</b> (programa "Desarrollo de la CTI", MEF/SIAF). En conjunto, las públicas dedican apenas <b>S/ ${M.idi_total}M (${pctNac}%)</b> de su presupuesto a ciencia y tecnología — ese es el verdadero cuello de botella, no el tamaño del presupuesto. Alineado con el <a href="https://unimauro.github.io/gemelo-digital-uni/" target="_blank" rel="noopener">Gemelo Digital UNI</a>. <b>Fuente:</b> MEF/SIAF (PIM 2025) + OpenAlex (pubs 2024).`;
 
   // segmento tipo
   $('segTipo').querySelectorAll('button').forEach(b=>b.onclick=()=>{
@@ -589,7 +590,7 @@ function render(){
       <td class="num">${fmt(x.h)}</td>
       <td class="num">${x.cpp}</td>
       <td class="num">${x.pim?fmt(x.pim):'<span style="color:var(--muted2)">—</span>'}</td>
-      <td class="num">${x.eff?'<b style="color:#22c55e">'+x.eff+'</b>':'<span style="color:var(--muted2)">—</span>'}</td>
+      <td class="num">${x.idi_pct?'<b style="color:#16a34a">'+x.idi_pct+'%</b>':'<span style="color:var(--muted2)">—</span>'}</td>
     </tr>`;}).join('')||'<tr><td colspan="13" style="text-align:center;color:var(--muted)">Sin resultados.</td></tr>';
 }
 
@@ -656,7 +657,7 @@ function renderCompare(){
     ['Ranking',u=>'#'+u.rank],['Índice Investigación',u=>u.score],['Tipo',u=>u.tipo],['Ciudad',u=>u.city||'—'],
     ['Área dominante',u=>u.field||'—'],['Publicaciones',u=>fmt(u.works)],['Citaciones',u=>fmt(u.cited)],
     ['h-index (impacto)',u=>fmt(u.h)],['Citas por publicación',u=>u.cpp],['Impacto reciente (2 años)',u=>u.mcit||'—'],
-    ['Presupuesto (S/M)',u=>u.pim?fmt(u.pim):'—'],['Eficiencia (pub/M S/)',u=>u.eff||'—']
+    ['Presupuesto total (S/M)',u=>u.pim?fmt(u.pim):'—'],['Inversión I+D (S/M)',u=>u.idi?u.idi:'—'],['% a I+D',u=>u.idi_pct?u.idi_pct+'%':'—']
   ];
   let html='<table><thead><tr><th>Métrica</th>'+sel.map((u,i)=>`<th style="color:${CMPCOL[i]}">${u.acron||u.name.slice(0,14)}</th>`).join('')+'</tr></thead><tbody>';
   rows.forEach(r=>{html+='<tr><td style="color:var(--muted)">'+r[0]+'</td>'+sel.map(u=>'<td><b>'+r[1](u)+'</b></td>').join('')+'</tr>';});
@@ -696,9 +697,9 @@ function botPick(c){$('botIn').value=c;botSend();}
 function botBoot(){if($('botMsgs').childElementCount===0){botSay('¡Hola! 🤖 Soy el asistente del Observatorio. Pregúntame por el <b>ranking</b>, <b>públicas vs privadas</b>, una universidad puntual o el <b>top del país</b>.');botChips();}}
 function botCtx(){const U=DB.unis,M=DB.meta;const top=U.slice(0,8).map(x=>`${x.rank}. ${x.acron||x.name} (${x.tipo}, Índice ${x.score}, h${x.h}, ${x.works} pub)`).join('; ');
   const conP=U.filter(x=>x.pim);
-  const effL=conP.filter(x=>x.eff).sort((a,b)=>b.eff-a.eff).slice(0,3).map(x=>`${x.acron||x.name} ${x.eff} pub por S/millón`).join('; ');
+  const idiL=conP.filter(x=>x.idi>0).sort((a,b)=>b.idi_pct-a.idi_pct).slice(0,3).map(x=>`${x.acron||x.name} ${x.idi_pct}%`).join('; ');
   const preL=[...conP].sort((a,b)=>b.pim-a.pim).slice(0,3).map(x=>`${x.acron||x.name} S/${x.pim}M`).join('; ');
-  return `Universidades del Perú (OpenAlex + MEF, ~2026): ${M.total} en total, ${M.n_publicas} públicas y ${M.n_privadas} privadas. Top investigación: ${top}. Presupuesto público total S/ ${M.presupuesto_total_publicas} millones (PIM 2025) en ${M.n_con_presupuesto} públicas; mayores: ${preL}. Más eficientes (publicaciones 2024 por S/ millón): ${effL}. Áreas más investigadas del país: ${(M.campos||[]).slice(0,6).map(c=>c.f).join(', ')}. El Índice es referencial, HISTÓRICO/acumulado y basado en OpenAlex SIN normalizar (puede incluir revistas predadoras y errores de afiliación; ej. 'Universidad San Pedro' fue EXCLUIDA por mezclar documentos de USP São Paulo). Para rankings rigurosos: Leiden Ranking Open, SCImago/Scopus, Web of Science. Las privadas no tienen presupuesto público. Para consultas/asesoría: carlos@cardenas.pe.`;}
+  return `Universidades del Perú (OpenAlex + MEF, ~2026): ${M.total} en total, ${M.n_publicas} públicas y ${M.n_privadas} privadas. Top investigación: ${top}. Presupuesto público total S/ ${M.presupuesto_total_publicas} millones (PIM 2025) en ${M.n_con_presupuesto} públicas; mayores: ${preL}. Inversión en I+D total S/ ${M.idi_total}M (programa CTI; el resto del presupuesto es sueldos/servicios). Mayor % a I+D: ${idiL}. El costo por publicación se calcula con la partida de I+D, NO con el presupuesto total. Áreas más investigadas del país: ${(M.campos||[]).slice(0,6).map(c=>c.f).join(', ')}. El Índice es referencial, HISTÓRICO/acumulado y basado en OpenAlex SIN normalizar (puede incluir revistas predadoras y errores de afiliación; ej. 'Universidad San Pedro' fue EXCLUIDA por mezclar documentos de USP São Paulo). Para rankings rigurosos: Leiden Ranking Open, SCImago/Scopus, Web of Science. Las privadas no tienen presupuesto público. Para consultas/asesoría: carlos@cardenas.pe.`;}
 const OFFMSG='Solo respondo sobre los datos de <b>este observatorio</b>: ranking, investigación, áreas/temas, presupuesto, patentes (INDECOPI) y ubicación de las universidades del Perú. 🙂 Prueba: «¿quién investiga más?», «patentes 2025» o «¿dónde está la UNI?».';
 function offTopic(q){const t=(q||'').toLowerCase();
   // 1) jailbreak / meta / pedir código o "skills" -> bloquear SIEMPRE (aunque mencione el tema)
@@ -728,7 +729,7 @@ function botAns(qr){const U=DB.unis,M=DB.meta,q=qr.toLowerCase();
   if(has('patente','diseño industrial','transferencia','innovacion','innovación','indecopi','modelo de utilidad')){const P=M.patentes;if(P){const sol=P.solicitudes.slice(0,3).map(r=>r[0].replace('Universidad ','')+' ('+r[1]+')').join(', ');return `En <b>2025</b> las universidades hicieron <b>${fmt(P.nac.solicitudes_uni)} solicitudes de patentes</b> (${P.nac.pct_nacional}% del total nacional), con <b>${fmt(P.nac.otorgadas)} otorgadas</b>. Lideran las solicitudes: <b>${sol}</b>. Dato clave: <b>las que más patentan NO son las que más investigan</b> — son universidades privadas orientadas a aplicación. Fuente: INDECOPI/DIN.`;}return 'INDECOPI mide patentes y diseños industriales (no OpenAlex). Mira la sección ⚗️ Patentes.';}
   if(has('impacto','citas recientes','calidad')){const t=[...U].filter(x=>x.mcit).sort((a,b)=>b.mcit-a.mcit)[0];return `El <b>impacto</b> se mide por <b>h-index</b> (trayectoria), <b>citas por publicación</b> y <b>citas recientes a 2 años</b>. Por impacto reciente destaca <b>${t.acron||t.name}</b> (${t.mcit} citas/pub a 2 años).`;}
   if(has('area','área','tema','campo','investiga en','especiali','disciplina')){const cc=(M.campos||[]).slice(0,5).map(c=>c.f);const m2=U.find(x=>(x.acron&&q.includes(x.acron.toLowerCase()))||q.includes((x.name||'').toLowerCase().slice(0,12)));if(m2&&m2.fields&&m2.fields.length)return `<b>${m2.name}</b> investiga sobre todo en <b>${m2.field}</b> (${m2.fields.map(z=>z.f+' '+z.pct+'%').join(', ')}).`;return 'Las áreas más investigadas del país son: <b>'+cc.join('</b>, <b>')+'</b>. Filtra la tabla por área para ver qué universidades lideran cada tema.';}
-  if(has('eficien','por sol','por millón','per capita','per cápita','rinde','rendimiento')){const e=U.filter(x=>x.eff).sort((a,b)=>b.eff-a.eff)[0];return e?`La más <b>eficiente</b> es <b>${e.acron||e.name}</b>: <b>${e.eff} publicaciones por cada S/ millón</b> (PIM 2025, MEF). Más presupuesto no siempre es más ciencia.`:'—';}
+  if(has('eficien','por sol','por millón','per capita','per cápita','rinde','rendimiento','i+d','investigacion','investigación','partida')){const e=U.filter(x=>x.idi>0).sort((a,b)=>b.idi_pct-a.idi_pct)[0];return e?`El que más invierte en I+D (como % de su presupuesto) es <b>${e.acron||e.name}</b>: <b>${e.idi_pct}%</b> (S/ ${e.idi}M). En total las públicas dedican solo ~S/ ${M.idi_total}M a ciencia (el resto es sueldos/servicios). El costo por publicación se mide con esa partida, no con el presupuesto total.`:'—';}
   if(has('presupuesto','plata','dinero','pim','soles','financia','mef')){const p=U.filter(x=>x.pim).sort((a,b)=>b.pim-a.pim)[0];return `El presupuesto público total es <b>S/ ${fmt(M.presupuesto_total_publicas)} millones</b> (PIM 2025, MEF) en ${M.n_con_presupuesto} universidades. La de mayor presupuesto es <b>${p.acron||p.name}</b> (S/ ${fmt(p.pim)}M). Las privadas no reciben presupuesto público.`;}
   if(has('top','mejor','ranking','quien investiga','quién investiga','lider','líder','primer')){return 'Top 5 por Índice de Investigación: '+U.slice(0,5).map(x=>`<b>${x.rank}. ${x.acron||x.name}</b> (${x.score})`).join(', ')+'.';}
   const m=U.find(x=>(x.acron&&q.includes(x.acron.toLowerCase()))||q.includes(x.name.toLowerCase().slice(0,12)));
