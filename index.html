@@ -40,6 +40,8 @@
 ]}
 </script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"ItemList","name":"Ranking de investigación de universidades del Perú","itemListOrder":"https://schema.org/ItemListOrderDescending","numberOfItems":10,"itemListElement":[{"@type":"ListItem","position":1,"name":"Universidad Peruana Cayetano Heredia","item":"https://openalex.org/I197097402"},{"@type":"ListItem","position":2,"name":"Pontificia Universidad Católica del Perú","item":"https://openalex.org/I65285256"},{"@type":"ListItem","position":3,"name":"Universidad Nacional de San Antonio Abad del Cusco","item":"https://openalex.org/I3132302805"},{"@type":"ListItem","position":4,"name":"Universidad Nacional Mayor de San Marcos","item":"https://openalex.org/I192513696"},{"@type":"ListItem","position":5,"name":"Universidad Nacional Agraria La Molina","item":"https://openalex.org/I79080234"},{"@type":"ListItem","position":6,"name":"Universidad San Pedro","item":"https://openalex.org/I4210131481"},{"@type":"ListItem","position":7,"name":"Universidad Científica del Sur","item":"https://openalex.org/I263512288"},{"@type":"ListItem","position":8,"name":"Universidad Peruana de Ciencias Aplicadas","item":"https://openalex.org/I1311157440"},{"@type":"ListItem","position":9,"name":"Universidad Nacional de Ingeniería","item":"https://openalex.org/I62520931"},{"@type":"ListItem","position":10,"name":"Universidad de San Martín de Porres","item":"https://openalex.org/I224954996"}]}</script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="config.js"></script>
 <style>
@@ -134,6 +136,12 @@
   #cmpTable th{color:var(--muted);font-weight:800;}
   .cmptopic{margin-bottom:6px;} .cmptopic h4{font-size:.88rem;margin:8px 0 4px;}
   .cmptopic .tt{display:inline-block;background:var(--card2);border:1px solid var(--line);border-radius:999px;padding:3px 10px;font-size:.75rem;margin:2px;color:var(--muted);}
+  #map{height:480px;border-radius:13px;z-index:1;}
+  @media(max-width:600px){#map{height:380px;}}
+  .leaflet-popup-content{font-family:inherit;font-size:.84rem;}
+  .leaflet-popup-content b{color:var(--pe);}
+  .maplg{display:flex;gap:16px;flex-wrap:wrap;font-size:.8rem;color:var(--muted);margin-top:8px;}
+  .maplg .dot{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:5px;vertical-align:-1px;}
   .scorebadge{font-weight:900;color:var(--gold);}
   .rk{color:var(--muted2);font-weight:700;}
   .box{background:linear-gradient(135deg,rgba(217,16,35,.12),rgba(244,183,64,.08));border:1px solid rgba(217,16,35,.3);border-radius:13px;padding:15px;font-size:.9rem;}
@@ -186,6 +194,7 @@
     <a data-sec="resumen" href="#resumen"><span class="em">📌</span> Resumen</a>
     <a data-sec="graficos" href="#graficos"><span class="em">📈</span> Gráficos</a>
     <a data-sec="pubpriv" href="#pubpriv"><span class="em">⚖️</span> Pública vs Privada</a>
+    <a data-sec="mapa" href="#mapa"><span class="em">🗺️</span> Mapa</a>
     <a data-sec="areas" href="#areas"><span class="em">🔬</span> Áreas / Temas</a>
     <a data-sec="comparador" href="#comparador"><span class="em">🆚</span> Comparador</a>
     <a data-sec="presupuesto" href="#presupuesto"><span class="em">💰</span> Presupuesto</a>
@@ -252,6 +261,16 @@
       <div class="grid g2" id="ppCards" style="align-content:start"></div>
     </div>
     <div class="box" style="margin-top:14px" id="ppNote">…</div>
+  </section>
+
+  <!-- MAPA -->
+  <section id="mapa">
+    <div class="sec-h"><span class="ico">🗺️</span><h2>Mapa de la investigación</h2></div>
+    <p class="sec-desc">¿Dónde se concentra la ciencia en el Perú? Cada burbuja es una universidad; su <b>tamaño = h-index</b> (impacto) y su <b>color = tipo</b>. El centralismo limeño salta a la vista.</p>
+    <div class="card">
+      <div id="map"></div>
+      <div class="maplg"><span><span class="dot" style="background:#3b82f6"></span>Pública</span><span><span class="dot" style="background:#f4b740"></span>Privada</span><span>Tamaño ∝ h-index · clic para detalle</span></div>
+    </div>
   </section>
 
   <!-- AREAS / TEMAS -->
@@ -384,7 +403,7 @@
 <script>
 const $=id=>document.getElementById(id);
 function sideToggle(force){const sd=$('side'),sc=$('scrim');const open=(force===undefined)?!sd.classList.contains('open'):force;sd.classList.toggle('open',open);sc.classList.toggle('open',open);}
-const SECS=['resumen','graficos','pubpriv','areas','comparador','presupuesto','tabla','metodo','contacto'];
+const SECS=['resumen','graficos','pubpriv','mapa','areas','comparador','presupuesto','tabla','metodo','contacto'];
 function spy(){let cur=SECS[0];for(const id of SECS){const el=$(id);if(el&&el.getBoundingClientRect().top<=130)cur=id;}document.querySelectorAll('#snav a[data-sec]').forEach(a=>a.classList.toggle('active',a.dataset.sec===cur));}
 window.addEventListener('scroll',spy,{passive:true});window.addEventListener('load',spy);
 document.addEventListener('click',e=>{const a=e.target.closest('#snav a[data-sec]');if(a&&window.innerWidth<=900)sideToggle(false);});
@@ -475,7 +494,7 @@ function init(){
     if(STATE.sort===s)STATE.dir*=-1; else{STATE.sort=s;STATE.dir=(s==='name'||s==='tipo'||s==='city')?1:-1;}
     render();
   });
-  render(); fillCmp(); botBoot();
+  render(); fillCmp(); buildMap(U); botBoot();
 }
 
 function render(){
@@ -503,6 +522,24 @@ function render(){
     </tr>`;}).join('')||'<tr><td colspan="12" style="text-align:center;color:var(--muted)">Sin resultados.</td></tr>';
 }
 
+/* mapa */
+let LMAP=null,LLAYER=null,LMK=[];
+function buildMap(U){
+  if(typeof L==='undefined'||!document.getElementById('map'))return;
+  if(!LMAP){ LMAP=L.map('map',{scrollWheelZoom:false}).setView([-9.8,-74.5],5.2); }
+  if(LLAYER)LMAP.removeLayer(LLAYER);
+  const light=document.body.getAttribute('data-theme')==='light';
+  LLAYER=L.tileLayer(light?'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png':'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{attribution:'© OpenStreetMap, © CARTO',maxZoom:12,subdomains:'abcd'}).addTo(LMAP);
+  LMK.forEach(m=>LMAP.removeLayer(m)); LMK=[];
+  U.filter(x=>x.lat&&x.lng).sort((a,b)=>a.h-b.h).forEach(x=>{
+    const r=4+Math.sqrt(x.h||1)*1.15;
+    const c=COL[x.tipo]||'#888';
+    const m=L.circleMarker([x.lat,x.lng],{radius:r,color:c,fillColor:c,fillOpacity:.55,weight:1.2}).addTo(LMAP);
+    m.bindPopup(`<b>${x.name}</b>${x.acron?' ('+x.acron+')':''}<br>${x.tipo} · ${x.city||'—'}<br>Índice ${x.score} · h-index <b>${x.h}</b> · ${fmt(x.works)} pub<br>Área: ${x.field||'—'}${x.pim?'<br>Presupuesto: S/ '+fmt(x.pim)+'M':''}`);
+    LMK.push(m);
+  });
+  setTimeout(()=>LMAP.invalidateSize(),250);
+}
 /* comparador */
 const CMPCOL=['#e11d48','#3b82f6','#22c55e'];
 function uByK(k){return DB.unis.find(x=>x.k===k);}
