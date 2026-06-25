@@ -415,6 +415,7 @@
         <h3 style="font-size:1.05rem;margin-bottom:6px">🏆 Evaluar con la lógica ShanghaiRanking (ARWU)</h3>
         <p style="font-size:.9rem;color:var(--muted);margin-bottom:8px">El estándar mundial. ARWU pondera <b>6 indicadores</b>: Alumni con Nobel/Fields (10%), premios del staff (20%), <b>Investigadores Altamente Citados — HiCi</b> (20%), papers en <b>Nature &amp; Science</b> (20%), papers SCIE/SSCI (20%) y <b>rendimiento per cápita</b> (10%).</p>
         <p style="font-size:.9rem;color:var(--muted);margin-bottom:8px">Hoy <b>ninguna universidad peruana entra al top 1000 de ARWU</b> (los indicadores Nobel/HiCi/N&amp;S son casi 0). Aplicar esta lógica donde sí hay señal (HiCi, N&amp;S, per cápita) y mostrar la brecha es el próximo paso analítico. Ya lo exploramos para la UNI en el <a href="https://unimauro.github.io/gemelo-digital-uni/" target="_blank" rel="noopener">Gemelo Digital UNI</a>.</p>
+        <div class="box" id="arwuNS" style="margin:8px 0;font-size:.86rem">…</div>
         <a href="https://www.shanghairanking.com/rankings/arwu/2025" target="_blank" rel="noopener">Ver ARWU 2025 ↗</a>
       </div>
       <div class="card">
@@ -545,6 +546,11 @@ function init(){
   $('areaNote').innerHTML=`<b>Lectura:</b> el área con más producción del país es <b>${topField}</b>. OpenAlex agrupa muchos estudios aplicados, educativos y de gestión bajo "Ciencias Sociales", por eso suele dominar; aun así, el perfil revela las fortalezas reales (agrarias, ambientales, computación, salud). Filtra la tabla por área para ver qué universidades lideran cada tema.`;
   // patentes INDECOPI
   renderPat();
+  // adelanto ARWU: Nature & Science
+  if($('arwuNS')){
+    const nsU=U.filter(x=>x.ns>0).sort((a,b)=>b.ns-a.ns);
+    $('arwuNS').innerHTML='<b>📊 Adelanto — indicador N&amp;S aplicado al Perú:</b> en toda la historia, el país registra <b>'+(M.ns_total||179)+' papers en Nature &amp; Science</b>, concentrados en solo <b>'+(M.ns_unis||nsU.length)+' universidades</b>: '+nsU.slice(0,6).map(x=>(x.acron||x.name.slice(0,12))+' <b>'+x.ns+'</b>').join(' · ')+'. <span style="color:var(--muted2)">Varias provienen de mega-colaboraciones (física de partículas) donde la universidad es 1 de miles de coautores — ARWU aplica conteo fraccional para eso.</span>';
+  }
   $('presuNote').innerHTML=`<b>Per cápita (ciencia por sol):</b> más presupuesto no garantiza más investigación. Universidades chicas como <b>${e0.acron||e0.name}</b> rinden <b>${e0.eff} publicaciones por cada S/ millón</b>, superando a varias con presupuestos mucho mayores. ${uni&&uni.spp?`A la <b>UNI</b> cada publicación le cuesta ~<b>S/ ${fmt(uni.spp)}</b>. `:''}<b>Fuente:</b> MEF/SIAF (PIM 2025) + OpenAlex (publicaciones 2024).`;
 
   // segmento tipo
