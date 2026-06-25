@@ -223,7 +223,7 @@
     <span class="badge">🇵🇪 Datos reales · OpenAlex</span>
     <h1>Observatorio de <span class="r">Universidades del Perú</span></h1>
     <p class="subtitle">Ranking de investigación · públicas y privadas</p>
-    <p class="lead">¿Qué tanto investiga cada universidad peruana? Comparamos <b id="nTot">96</b> universidades (públicas y privadas) con bibliometría real (publicaciones, citaciones, h-index) y un <b>Índice de Investigación</b> transparente. La infraestructura no aparece: lo que se mide es ciencia.</p>
+    <p class="lead">Exploración bibliométrica de <b id="nTot">95</b> universidades peruanas con datos abiertos de OpenAlex (publicaciones, citaciones, h-index) y un <b>Índice de Investigación</b> referencial. Es una herramienta <b>exploratoria, no un ranking oficial</b>: los datos son <b>históricos/acumulados</b> y sin normalizar — lee la <a href="#metodo">metodología y limitaciones</a>.</p>
     <div class="topbtns">
       <a class="tb" href="#tabla">📊 Ranking completo</a>
       <a class="tb" href="#graficos">📈 Gráficos</a>
@@ -363,7 +363,8 @@
         <th data-s="city">Ciudad</th>
         <th data-s="field">Área dominante</th>
         <th data-s="score" class="num">Índice</th>
-        <th data-s="works" class="num">Public.</th>
+        <th data-s="works" class="num">Public. (hist.)</th>
+        <th data-s="wr" class="num">Public. 2020-24</th>
         <th data-s="cited" class="num">Citas</th>
         <th data-s="h" class="num">h-index</th>
         <th data-s="cpp" class="num">Citas/pub</th>
@@ -385,7 +386,20 @@
         <tr><td><b>Citaciones</b> (alcance, escala log)</td><td class="num">20%</td></tr>
         <tr><td><b>Citas por publicación</b> (calidad)</td><td class="num">15%</td></tr>
       </tbody></table>
-      <p class="sec-desc" style="margin-top:10px;margin-bottom:0">⚠️ Limitaciones honestas: la bibliometría favorece áreas con mucha citación (medicina, ciencias) frente a ingeniería o humanidades; un solo paper muy citado puede inflar el h-index de una universidad pequeña. No mide docencia, empleabilidad ni infraestructura. <b>Fuente:</b> OpenAlex (CC0), datos ~2026. <b>Cobertura:</b> todas las universidades del Perú presentes en OpenAlex (se excluyen institutos, escuelas militares y centros que no son universidades). Las que aún no registran publicaciones indexadas aparecen con métricas en 0 (no es un ranking de calidad docente).</p>
+      <p class="sec-desc" style="margin-top:10px">No mide docencia, empleabilidad ni infraestructura. <b>Fuente:</b> OpenAlex (CC0). <b>Cobertura:</b> universidades del Perú con presencia en OpenAlex (se excluyen institutos, escuelas militares y centros).</p>
+    </div>
+
+    <div class="card" style="margin-top:14px;border-left:4px solid var(--accent)">
+      <h3 style="font-size:1.05rem;margin-bottom:8px">⚠️ Calidad de los datos y limitaciones (importante)</h3>
+      <p class="sec-desc" style="margin-bottom:8px">OpenAlex es <b>data abierta sin normalizar ni curar</b>. Antes de leer este tablero como un ranking, considera:</p>
+      <ul style="margin-left:18px;color:var(--muted);font-size:.9rem;line-height:1.7">
+        <li><b>Temporalidad:</b> el Índice y los totales son <b>históricos/acumulados</b>. Por eso agregamos la columna <b>“Public. 2020–2024”</b> como ventana reciente. Un análisis riguroso usa <b>ventana temporal fija + conteo fraccional + normalización por campo</b> (metodología <a href="https://open.leidenranking.com/" target="_blank" rel="noopener">CWTS Leiden Ranking — Open edition</a>, que también trabaja sobre OpenAlex).</li>
+        <li><b>Revistas predadoras:</b> OpenAlex no filtra calidad → universidades con alto volumen en revistas predadoras o de baja indexación aparecen infladas.</li>
+        <li><b>Errores de afiliación (desambiguación):</b> verificado y corregido — <b>“Universidad San Pedro” mezclaba ~8,050 documentos de Brasil (USP de São Paulo y U. Estadual de Maringá)</b> atribuidos por la sigla “USP”, inflando su h-index a 103. <b>La excluimos.</b></li>
+        <li><b>Mega-colaboraciones:</b> sin conteo fraccional, una universidad pequeña en consorcios (física de partículas, genómica) puede mostrar un h-index desproporcionado por pocos papers con miles de coautores.</li>
+        <li><b>Cobertura de públicas:</b> OpenAlex autogenera perfiles y algunos se fragmentan o faltan; Scopus/WoS los curan manualmente. <b>La normalización es el paso previo a cualquier análisis serio.</b></li>
+      </ul>
+      <p class="sec-desc" style="margin-top:10px;margin-bottom:0">📌 <b>Para rankings rigurosos:</b> <a href="https://open.leidenranking.com/" target="_blank" rel="noopener">Leiden Ranking (Open)</a>, <a href="https://www.scimagoir.com/" target="_blank" rel="noopener">SCImago Institutions Rankings</a> (Scopus) e InCites (Web of Science). Este portal es <b>exploratorio y educativo</b> — para ver órdenes de magnitud y abrir la conversación, no para decisiones de política.</p>
     </div>
   </section>
 
@@ -435,7 +449,7 @@ function mk(id,cfg){ if(C[id])C[id].destroy(); C[id]=new Chart($(id),cfg); }
 const gridc=()=>getComputedStyle(document.body).getPropertyValue('--line')||'#2a3252';
 const axc='#94a0c0';
 
-fetch('data/universidades.json').then(r=>r.json()).then(d=>{DB=d;init();}).catch(e=>{$('rows').innerHTML='<tr><td colspan="12">No se pudo cargar la data.</td></tr>';});
+fetch('data/universidades.json').then(r=>r.json()).then(d=>{DB=d;init();}).catch(e=>{$('rows').innerHTML='<tr><td colspan="13">No se pudo cargar la data.</td></tr>';});
 
 function init(){
   const U=DB.unis, M=DB.meta;
@@ -536,12 +550,13 @@ function render(){
       <td>${x.field&&x.field!=='Sin datos'?'<span class="pill area">'+x.field+'</span>':'<span style="color:var(--muted2)">—</span>'}</td>
       <td class="num scorebadge">${x.score}</td>
       <td class="num">${fmt(x.works)}</td>
+      <td class="num">${x.wr?fmt(x.wr):'—'}</td>
       <td class="num">${fmt(x.cited)}</td>
       <td class="num">${fmt(x.h)}</td>
       <td class="num">${x.cpp}</td>
       <td class="num">${x.pim?fmt(x.pim):'<span style="color:var(--muted2)">—</span>'}</td>
       <td class="num">${x.eff?'<b style="color:#22c55e">'+x.eff+'</b>':'<span style="color:var(--muted2)">—</span>'}</td>
-    </tr>`;}).join('')||'<tr><td colspan="12" style="text-align:center;color:var(--muted)">Sin resultados.</td></tr>';
+    </tr>`;}).join('')||'<tr><td colspan="13" style="text-align:center;color:var(--muted)">Sin resultados.</td></tr>';
 }
 
 /* patentes */
@@ -649,7 +664,7 @@ function botCtx(){const U=DB.unis,M=DB.meta;const top=U.slice(0,8).map(x=>`${x.r
   const conP=U.filter(x=>x.pim);
   const effL=conP.filter(x=>x.eff).sort((a,b)=>b.eff-a.eff).slice(0,3).map(x=>`${x.acron||x.name} ${x.eff} pub por S/millón`).join('; ');
   const preL=[...conP].sort((a,b)=>b.pim-a.pim).slice(0,3).map(x=>`${x.acron||x.name} S/${x.pim}M`).join('; ');
-  return `Universidades del Perú (OpenAlex + MEF, ~2026): ${M.total} en total, ${M.n_publicas} públicas y ${M.n_privadas} privadas. Top investigación: ${top}. Presupuesto público total S/ ${M.presupuesto_total_publicas} millones (PIM 2025) en ${M.n_con_presupuesto} públicas; mayores: ${preL}. Más eficientes (publicaciones 2024 por S/ millón): ${effL}. Áreas más investigadas del país: ${(M.campos||[]).slice(0,6).map(c=>c.f).join(', ')}. El Índice de Investigación es referencial (h-index 40%, publicaciones 25%, citaciones 20%, citas/pub 15%); las privadas no tienen presupuesto público. Para consultas/asesoría: carlos@cardenas.pe.`;}
+  return `Universidades del Perú (OpenAlex + MEF, ~2026): ${M.total} en total, ${M.n_publicas} públicas y ${M.n_privadas} privadas. Top investigación: ${top}. Presupuesto público total S/ ${M.presupuesto_total_publicas} millones (PIM 2025) en ${M.n_con_presupuesto} públicas; mayores: ${preL}. Más eficientes (publicaciones 2024 por S/ millón): ${effL}. Áreas más investigadas del país: ${(M.campos||[]).slice(0,6).map(c=>c.f).join(', ')}. El Índice es referencial, HISTÓRICO/acumulado y basado en OpenAlex SIN normalizar (puede incluir revistas predadoras y errores de afiliación; ej. 'Universidad San Pedro' fue EXCLUIDA por mezclar documentos de USP São Paulo). Para rankings rigurosos: Leiden Ranking Open, SCImago/Scopus, Web of Science. Las privadas no tienen presupuesto público. Para consultas/asesoría: carlos@cardenas.pe.`;}
 const OFFMSG='Solo respondo sobre los datos de <b>este observatorio</b>: ranking, investigación, áreas/temas, presupuesto, patentes (INDECOPI) y ubicación de las universidades del Perú. 🙂 Prueba: «¿quién investiga más?», «patentes 2025» o «¿dónde está la UNI?».';
 function offTopic(q){const t=(q||'').toLowerCase();
   // 1) jailbreak / meta / pedir código o "skills" -> bloquear SIEMPRE (aunque mencione el tema)
