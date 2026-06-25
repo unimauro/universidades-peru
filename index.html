@@ -197,6 +197,7 @@
     <a data-sec="mapa" href="#mapa"><span class="em">🗺️</span> Mapa</a>
     <a data-sec="areas" href="#areas"><span class="em">🔬</span> Áreas / Temas</a>
     <a data-sec="comparador" href="#comparador"><span class="em">🆚</span> Comparador</a>
+    <a data-sec="patentes" href="#patentes"><span class="em">⚗️</span> Patentes</a>
     <a data-sec="presupuesto" href="#presupuesto"><span class="em">💰</span> Presupuesto</a>
     <a data-sec="tabla" href="#tabla"><span class="em">📊</span> Ranking completo</a>
     <a data-sec="metodo" href="#metodo"><span class="em">🧮</span> Metodología</a>
@@ -309,6 +310,19 @@
     <div class="card" style="margin-top:14px"><h3 style="font-size:.95rem;margin-bottom:8px">🏷️ Temas principales de cada universidad</h3><div id="cmpTopics"></div></div>
   </section>
 
+  <!-- PATENTES / TRANSFERENCIA -->
+  <section id="patentes">
+    <div class="sec-h"><span class="ico">⚗️</span><h2>Patentes y transferencia tecnológica</h2></div>
+    <p class="sec-desc">¿Qué universidades generan <b>tecnología</b>, no solo papers? Solicitudes y patentes ante <b>INDECOPI (2025)</b>. Ojo: <b>quien más patenta NO es quien más investiga</b>.</p>
+    <div class="grid g4" id="patKpis"></div>
+    <div class="grid g2" style="margin-top:14px">
+      <div class="card"><h3 style="font-size:.95rem;margin-bottom:8px">📝 Top solicitudes de patentes 2025</h3><div class="chartbox" style="height:260px"><canvas id="cPatSol"></canvas></div></div>
+      <div class="card"><h3 style="font-size:.95rem;margin-bottom:8px">✅ Top patentes otorgadas 2025</h3><div class="chartbox" style="height:260px"><canvas id="cPatOtg"></canvas></div></div>
+    </div>
+    <div class="card" style="margin-top:14px"><h3 style="font-size:1rem;margin-bottom:8px">🔀 La paradoja: patentes ≠ investigación</h3><div id="patParadox"></div></div>
+    <div class="box" style="margin-top:14px" id="patNote">…</div>
+  </section>
+
   <!-- PRESUPUESTO Y EFICIENCIA -->
   <section id="presupuesto">
     <div class="sec-h"><span class="ico">💰</span><h2>Presupuesto y eficiencia (per cápita)</h2></div>
@@ -403,7 +417,7 @@
 <script>
 const $=id=>document.getElementById(id);
 function sideToggle(force){const sd=$('side'),sc=$('scrim');const open=(force===undefined)?!sd.classList.contains('open'):force;sd.classList.toggle('open',open);sc.classList.toggle('open',open);}
-const SECS=['resumen','graficos','pubpriv','mapa','areas','comparador','presupuesto','tabla','metodo','contacto'];
+const SECS=['resumen','graficos','pubpriv','mapa','areas','comparador','patentes','presupuesto','tabla','metodo','contacto'];
 function spy(){let cur=SECS[0];for(const id of SECS){const el=$(id);if(el&&el.getBoundingClientRect().top<=130)cur=id;}document.querySelectorAll('#snav a[data-sec]').forEach(a=>a.classList.toggle('active',a.dataset.sec===cur));}
 window.addEventListener('scroll',spy,{passive:true});window.addEventListener('load',spy);
 document.addEventListener('click',e=>{const a=e.target.closest('#snav a[data-sec]');if(a&&window.innerWidth<=900)sideToggle(false);});
@@ -481,6 +495,8 @@ function init(){
   const claves=['Ingeniería','Medicina','Ciencias Agrarias y Biológicas','Computación'];
   $('areaCards').innerHTML=claves.map(f=>{const g=(U.filter(x=>(x.fields||[]).some(z=>z.f===f))).sort((a,b)=>b.h-a.h)[0];return g?`<div class="card" style="border-left:4px solid #a855f7"><div class="k" style="color:var(--muted);font-weight:700;font-size:.72rem;text-transform:uppercase">${f}</div><div style="font-size:1.05rem;font-weight:900;margin:2px 0">${g.acron||g.name.slice(0,20)}</div><div class="d" style="font-size:.78rem;color:var(--muted2)">referente por h-index (${g.h})</div></div>`:'';}).join('');
   $('areaNote').innerHTML=`<b>Lectura:</b> el área con más producción del país es <b>${topField}</b>. OpenAlex agrupa muchos estudios aplicados, educativos y de gestión bajo "Ciencias Sociales", por eso suele dominar; aun así, el perfil revela las fortalezas reales (agrarias, ambientales, computación, salud). Filtra la tabla por área para ver qué universidades lideran cada tema.`;
+  // patentes INDECOPI
+  renderPat();
   $('presuNote').innerHTML=`<b>Per cápita (ciencia por sol):</b> más presupuesto no garantiza más investigación. Universidades chicas como <b>${e0.acron||e0.name}</b> rinden <b>${e0.eff} publicaciones por cada S/ millón</b>, superando a varias con presupuestos mucho mayores. ${uni&&uni.spp?`A la <b>UNI</b> cada publicación le cuesta ~<b>S/ ${fmt(uni.spp)}</b>. `:''}<b>Fuente:</b> MEF/SIAF (PIM 2025) + OpenAlex (publicaciones 2024).`;
 
   // segmento tipo
@@ -522,6 +538,27 @@ function render(){
     </tr>`;}).join('')||'<tr><td colspan="12" style="text-align:center;color:var(--muted)">Sin resultados.</td></tr>';
 }
 
+/* patentes */
+function renderPat(){
+  const P=DB.meta.patentes; if(!P||!$('patKpis'))return;
+  const n=P.nac;
+  $('patKpis').innerHTML=[
+    ['Solicitudes universitarias',fmt(n.solicitudes_uni),n.pct_nacional+'% del total nacional · 2025'],
+    ['Patentes de invención',fmt(n.invencion),'nacional · +50% vs 2024'],
+    ['Modelos de utilidad',fmt(n.modelos_utilidad),'nacional · +29%'],
+    ['Patentes otorgadas',fmt(n.otorgadas),'concedidas en 2025 · +54%']
+  ].map(x=>`<div class="card stat"><div class="k">${x[0]}</div><div class="v" style="font-size:1.6rem">${x[1]}</div><div class="d">${x[2]}</div></div>`).join('');
+  const hbar=(id,arr,col)=>mk(id,{type:'bar',data:{labels:arr.map(r=>r[0].replace(/^Universidad |^U\. |^U\.N\. /,'')),datasets:[{data:arr.map(r=>r[1]),backgroundColor:col}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{color:gridc()},ticks:{color:axc}},y:{grid:{display:false},ticks:{color:axc,font:{size:10}}}}}});
+  hbar('cPatSol',P.solicitudes,'#06b6d4'); hbar('cPatOtg',P.otorgadas,'#22c55e');
+  // paradoja: ranking investigación de los líderes en patentes
+  const findU=kw=>DB.unis.find(x=>x.name.toLowerCase().includes(kw));
+  let rows='<table style="width:100%;border-collapse:collapse;font-size:.86rem"><thead><tr><th style="text-align:left;padding:7px;color:var(--muted)">Universidad</th><th style="text-align:right;padding:7px;color:var(--muted)">Solicitudes patentes 2025</th><th style="text-align:right;padding:7px;color:var(--muted)">Puesto en investigación</th></tr></thead><tbody>';
+  P.solicitudes.forEach(r=>{const u=findU(r[2]);const rk=u?('#'+u.rank+' / '+DB.meta.total):'s/d';const col=u&&u.rank>20?'color:#ef4444':'';rows+=`<tr><td style="padding:7px;border-top:1px solid var(--line)">${r[0]}</td><td style="padding:7px;text-align:right;border-top:1px solid var(--line)"><b>${r[1]}</b></td><td style="padding:7px;text-align:right;border-top:1px solid var(--line);${col}"><b>${rk}</b></td></tr>`;});
+  rows+='</tbody></table>';
+  $('patParadox').innerHTML=rows+'<div style="font-size:.82rem;color:var(--muted2);margin-top:8px">Las que lideran patentes (universidades privadas orientadas a aplicación) suelen estar lejos del top de <b>investigación</b> bibliométrica. Producir tecnología y producir ciencia son cosas distintas.</div>';
+  const h=P.historico;
+  $('patNote').innerHTML=`<b>Histórico 1990–2021:</b> la <b>${h[0][0]}</b> lidera con <b>${h[0][1]}</b> patentes acumuladas, seguida de ${h[1][0]} (${h[1][1]}) y ${h[2][0]} (${h[2][1]}). <b>Fuente:</b> ${P.fuente}. ${P.nota}`;
+}
 /* mapa */
 let LMAP=null,LLAYER=null,LMK=[];
 function buildMap(U){
@@ -621,7 +658,7 @@ function botAns(qr){const U=DB.unis,M=DB.meta,q=qr.toLowerCase();
   const has=(...w)=>w.some(x=>q.includes(x));
   if(has('uni','ingenieria','ingeniería')){const u=U.find(x=>x.acron==='UNI');return u?`La <b>UNI</b> está en el puesto <b>#${u.rank}</b> del país por Índice de Investigación (${u.score}), con <b>${fmt(u.works)}</b> publicaciones y h-index <b>${u.h}</b>. Mira el <a href="https://unimauro.github.io/gemelo-digital-uni/" target="_blank">Gemelo Digital de la UNI</a>.`:'—';}
   if(has('publica','privada','público','quién aporta')){const p=U.filter(x=>x.tipo==='Pública'),v=U.filter(x=>x.tipo==='Privada');const wp=p.reduce((a,x)=>a+x.works,0),wv=v.reduce((a,x)=>a+x.works,0);return `Hay <b>${M.n_publicas} públicas</b> y <b>${M.n_privadas} privadas</b>. Las públicas aportan <b>${Math.round(100*wp/(wp+wv))}%</b> de las publicaciones; las privadas el resto. La líder es <b>${U[0].acron}</b> (${U[0].tipo}).`;}
-  if(has('patente','diseño industrial','transferencia','innovacion','innovación','indecopi')){return 'OpenAlex registra <b>0 patentes</b> para el Perú: es una base de <b>literatura científica</b>, no de patentes. El impacto aquí se mide por <b>citaciones, h-index y citas por publicación</b>. Para <b>patentes y diseños industriales</b> la fuente oficial es <b>INDECOPI</b> (Dirección de Invenciones). Se puede integrar a futuro.';}
+  if(has('patente','diseño industrial','transferencia','innovacion','innovación','indecopi','modelo de utilidad')){const P=M.patentes;if(P){const sol=P.solicitudes.slice(0,3).map(r=>r[0].replace('Universidad ','')+' ('+r[1]+')').join(', ');return `En <b>2025</b> las universidades hicieron <b>${fmt(P.nac.solicitudes_uni)} solicitudes de patentes</b> (${P.nac.pct_nacional}% del total nacional), con <b>${fmt(P.nac.otorgadas)} otorgadas</b>. Lideran las solicitudes: <b>${sol}</b>. Dato clave: <b>las que más patentan NO son las que más investigan</b> — son universidades privadas orientadas a aplicación. Fuente: INDECOPI/DIN.`;}return 'INDECOPI mide patentes y diseños industriales (no OpenAlex). Mira la sección ⚗️ Patentes.';}
   if(has('impacto','citas recientes','calidad')){const t=[...U].filter(x=>x.mcit).sort((a,b)=>b.mcit-a.mcit)[0];return `El <b>impacto</b> se mide por <b>h-index</b> (trayectoria), <b>citas por publicación</b> y <b>citas recientes a 2 años</b>. Por impacto reciente destaca <b>${t.acron||t.name}</b> (${t.mcit} citas/pub a 2 años).`;}
   if(has('area','área','tema','campo','investiga en','especiali','disciplina')){const cc=(M.campos||[]).slice(0,5).map(c=>c.f);const m2=U.find(x=>(x.acron&&q.includes(x.acron.toLowerCase()))||q.includes((x.name||'').toLowerCase().slice(0,12)));if(m2&&m2.fields&&m2.fields.length)return `<b>${m2.name}</b> investiga sobre todo en <b>${m2.field}</b> (${m2.fields.map(z=>z.f+' '+z.pct+'%').join(', ')}).`;return 'Las áreas más investigadas del país son: <b>'+cc.join('</b>, <b>')+'</b>. Filtra la tabla por área para ver qué universidades lideran cada tema.';}
   if(has('eficien','por sol','por millón','per capita','per cápita','rinde','rendimiento')){const e=U.filter(x=>x.eff).sort((a,b)=>b.eff-a.eff)[0];return e?`La más <b>eficiente</b> es <b>${e.acron||e.name}</b>: <b>${e.eff} publicaciones por cada S/ millón</b> (PIM 2025, MEF). Más presupuesto no siempre es más ciencia.`:'—';}
