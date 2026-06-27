@@ -204,6 +204,7 @@
     <a data-sec="areas" href="#areas"><span class="em">🔬</span> Áreas / Temas</a>
     <a data-sec="comparador" href="#comparador"><span class="em">🆚</span> Comparador</a>
     <a data-sec="patentes" href="#patentes"><span class="em">⚗️</span> Patentes</a>
+    <a data-sec="indicadores" href="#indicadores"><span class="em">📊</span> Indicadores</a>
     <a data-sec="presupuesto" href="#presupuesto"><span class="em">💰</span> Presupuesto</a>
     <a data-sec="tabla" href="#tabla"><span class="em">📊</span> Ranking completo</a>
     <a data-sec="metodo" href="#metodo"><span class="em">🧮</span> Metodología</a>
@@ -329,6 +330,25 @@
     </div>
     <div class="card" style="margin-top:14px"><h3 style="font-size:1rem;margin-bottom:8px">🔀 La paradoja: patentes ≠ investigación</h3><div id="patParadox"></div></div>
     <div class="box" style="margin-top:14px" id="patNote">…</div>
+    <div class="card" style="margin-top:14px;border-left:4px solid var(--accent)">
+      <h3 style="font-size:1.02rem;margin-bottom:6px">⚠️ Sesgo de las patentes (importante)</h3>
+      <p style="font-size:.9rem;color:var(--muted);margin-bottom:8px">El conteo de patentes <b>no equivale a innovación</b>. La gran mayoría son <b>modelos de utilidad</b> o patentes de segundo uso/excepción — incrementales, no invenciones de fondo: en 2025 hubo <b>722 modelos de utilidad</b> vs solo <b>246 patentes de invención</b>. El liderazgo en solicitudes lo inflan universidades que <b>montaron equipos especializados</b> (a veces con ex-funcionarios de INDECOPI) para producir patentes en volumen. <i>Hecha la ley, hecha la trampa.</i></p>
+      <p style="font-size:.86rem;color:var(--muted2);margin:0">Para una señal más cercana a innovación real, mira las <b>patentes de invención</b> (no las totales) y contrasta con patentes en oficinas extranjeras. Análisis de referencia: <a href="https://observatorio.ceplan.gob.pe/ficha/t72" target="_blank" rel="noopener">Observatorio CEPLAN — ficha t72</a>.</p>
+    </div>
+  </section>
+
+  <!-- INDICADORES POR CATEGORÍA -->
+  <section id="indicadores">
+    <div class="sec-h"><span class="ico">📊</span><h2>Indicadores por categoría</h2></div>
+    <p class="sec-desc">Como los rankings internacionales: separa <b>volumen</b>, <b>calidad</b> e <b>híbridos</b>, y léelos en conjunto. Un solo número nunca cuenta toda la historia.</p>
+    <div class="seg" id="indicTabs">
+      <button data-c="volumen">📦 Volumen</button>
+      <button data-c="calidad">⭐ Calidad</button>
+      <button data-c="hibrido">🔀 Híbrido</button>
+      <button class="on" data-c="integral">🎯 Integral</button>
+    </div>
+    <div class="card" style="margin-top:12px"><h3 id="indicTit" style="font-size:.95rem;margin-bottom:8px">Top 15</h3><div class="chartbox"><canvas id="cIndic"></canvas></div></div>
+    <div class="box" style="margin-top:12px" id="indicDesc">…</div>
   </section>
 
   <!-- PRESUPUESTO Y EFICIENCIA -->
@@ -466,7 +486,7 @@
 <script>
 const $=id=>document.getElementById(id);
 function sideToggle(force){const sd=$('side'),sc=$('scrim');const open=(force===undefined)?!sd.classList.contains('open'):force;sd.classList.toggle('open',open);sc.classList.toggle('open',open);}
-const SECS=['resumen','graficos','pubpriv','mapa','areas','comparador','patentes','presupuesto','tabla','metodo','roadmap','contacto'];
+const SECS=['resumen','graficos','pubpriv','mapa','areas','comparador','patentes','indicadores','presupuesto','tabla','metodo','roadmap','contacto'];
 function spy(){let cur=SECS[0];for(const id of SECS){const el=$(id);if(el&&el.getBoundingClientRect().top<=130)cur=id;}document.querySelectorAll('#snav a[data-sec]').forEach(a=>a.classList.toggle('active',a.dataset.sec===cur));}
 window.addEventListener('scroll',spy,{passive:true});window.addEventListener('load',spy);
 document.addEventListener('click',e=>{const a=e.target.closest('#snav a[data-sec]');if(a&&window.innerWidth<=900)sideToggle(false);});
@@ -552,6 +572,10 @@ function init(){
     const nsU=U.filter(x=>x.ns>0).sort((a,b)=>b.ns-a.ns);
     $('arwuNS').innerHTML='<b>📊 Adelanto — indicador N&amp;S aplicado al Perú:</b> en toda la historia, el país registra <b>'+(M.ns_total||179)+' papers en Nature &amp; Science</b>, concentrados en solo <b>'+(M.ns_unis||nsU.length)+' universidades</b>: '+nsU.slice(0,6).map(x=>(x.acron||x.name.slice(0,12))+' <b>'+x.ns+'</b>').join(' · ')+'. <span style="color:var(--muted2)">Varias provienen de mega-colaboraciones (física de partículas) donde la universidad es 1 de miles de coautores — ARWU aplica conteo fraccional para eso.</span>';
   }
+  if($('indicTabs')){
+    $('indicTabs').querySelectorAll('button').forEach(b=>b.onclick=()=>{$('indicTabs').querySelectorAll('button').forEach(x=>x.classList.remove('on'));b.classList.add('on');renderIndic(b.dataset.c);});
+    renderIndic('integral');
+  }
   $('presuNote').innerHTML=`<b>⚠️ Corrección metodológica:</b> el costo por publicación NO se calcula dividiendo el <b>presupuesto total</b> entre publicaciones (ese total paga sueldos, servicios, luz, agua…), sino la <b>partida de investigación</b> (programa "Desarrollo de la CTI", MEF/SIAF). En conjunto, las públicas dedican apenas <b>S/ ${M.idi_total}M (${pctNac}%)</b> de su presupuesto a ciencia y tecnología — ese es el verdadero cuello de botella, no el tamaño del presupuesto. Alineado con el <a href="https://unimauro.github.io/gemelo-digital-uni/" target="_blank" rel="noopener">Gemelo Digital UNI</a>. <b>Fuente:</b> MEF/SIAF (PIM 2025) + OpenAlex (pubs 2024).`;
 
   // segmento tipo
@@ -632,6 +656,21 @@ function buildMap(U){
     LMK.push(m);
   });
   setTimeout(()=>LMAP.invalidateSize(),250);
+}
+/* indicadores por categoría */
+const INDIC={
+  volumen:{m:x=>x.works,t:'Volumen · Publicaciones (histórico)',col:'#2563eb',d:'<b>📦 Volumen</b> — cuánto se publica. NO mide calidad y es sensible a revistas predadoras. Complementa con la columna «Public. 2020-24» (ventana reciente) en la tabla.'},
+  calidad:{m:x=>x.cpp,t:'Calidad · Citas por publicación',col:'#16a34a',d:'<b>⭐ Calidad / impacto</b> — citas por publicación (e impacto reciente a 2 años en la tabla). ⏳ <b>Pendientes</b> (requieren SCImago/Scopus y planilla docente SUNEDU, no están en OpenAlex): <b>% en revistas Q1-Q2</b>, <b>D1</b>, y <b>per cápita por docente a tiempo completo</b>.'},
+  hibrido:{m:x=>x.h,t:'Híbrido · h-index',col:'#e8a13a',d:'<b>🔀 Híbrido</b> — el h-index mezcla volumen e impacto en un número. Útil pero sesgado a trayectoria y tamaño; una uni grande casi siempre tendrá h mayor.'},
+  integral:{m:x=>x.score,t:'Interpretación integral · Índice de Investigación',col:'#0e7c86',d:'<b>🎯 Interpretación integral</b> — ningún indicador solo basta; por eso los rankings serios (Leiden, ARWU) combinan varios. Nuestro Índice pondera hacia impacto (h-index 45%, citas/pub 25%, volumen 30%), pero <b>léelo junto</b> con las otras pestañas y la sección «Calidad de datos». Es referencial, no oficial.'}
+};
+function renderIndic(cat){
+  if(!DB) return;
+  const c=INDIC[cat]||INDIC.integral;
+  const top=[...DB.unis].filter(x=>c.m(x)>0).sort((a,b)=>c.m(b)-c.m(a)).slice(0,15);
+  if($('indicTit')) $('indicTit').textContent='Top 15 — '+c.t;
+  mk('cIndic',{type:'bar',data:{labels:top.map(x=>x.acron||x.name.slice(0,16)),datasets:[{data:top.map(c.m),backgroundColor:top.map(x=>x.acron==='UNI'?'#f76c5e':c.col)}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{color:gridc()},ticks:{color:axc}},y:{grid:{display:false},ticks:{color:axc,font:{size:10}}}}}});
+  if($('indicDesc')) $('indicDesc').innerHTML=c.d;
 }
 /* comparador */
 const CMPCOL=['#0e7c86','#f76c5e','#9333ea'];
